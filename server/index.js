@@ -1,6 +1,8 @@
 const express = require("express");
 const cors = require("cors");
 
+const guestRoutes = require("./routes/guestRoutes");
+
 const app = express();
 
 app.use(cors());
@@ -11,6 +13,8 @@ app.get("/", (req, res) => {
     message: "WeddingOS API running",
   });
 });
+
+app.use("/guests", guestRoutes);
 
 const PORT = 5000;
 
