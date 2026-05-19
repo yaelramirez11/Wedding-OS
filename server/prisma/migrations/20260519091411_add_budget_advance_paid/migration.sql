@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "BudgetItem" ADD COLUMN     "advancePaid" DOUBLE PRECISION NOT NULL DEFAULT 0;

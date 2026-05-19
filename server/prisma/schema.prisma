@@ -7,9 +7,64 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum GuestStatus {
+  pending
+  confirmed
+  declined
+  maybe
+}
+
+enum GuestSide {
+  bride
+  groom
+  both
+}
+
 model Guest {
-  id        Int      @id @default(autoincrement())
-  name      String
-  confirmed Boolean  @default(false)
-  createdAt DateTime @default(now())
+  id             Int         @id @default(autoincrement())
+  name           String
+  status         GuestStatus @default(pending)
+  side           GuestSide   @default(both)
+  plusOneAllowed Boolean     @default(false)
+  notes          String?
+  createdAt      DateTime    @default(now())
+}
+
+enum BudgetStatus {
+  pending
+  advancePayment
+  paid
+}
+
+enum BudgetCategory {
+  venue
+  photography
+  dress
+  honeymoon
+  decoration
+  chorus
+  getReadyBride
+  cake
+  snacks
+  sweets
+  waiterTips
+  tableNumbers
+  alcohol
+  favors
+  centerpieces
+  florals
+  sweetheartTable
+  other
+}
+
+model BudgetItem {
+  id          Int            @id @default(autoincrement())
+  title       String
+  cost        Float
+  advancePaid Float         @default(0)
+  category    BudgetCategory @default(other)
+  subcategory String?
+  status      BudgetStatus   @default(pending)
+  notes       String?
+  createdAt   DateTime       @default(now())
 }

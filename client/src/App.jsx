@@ -1,15 +1,20 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 
-import Home from "./pages/Home";
-import Dashboard from "./pages/Dashboard";
-import Login from "./pages/Login";
+import DashboardLayout from "./layouts/DashboardLayout.jsx";
+import GuestsPage from "./pages/GuestsPage.jsx";
+import DashboardPage from "./pages/DashboardPage.jsx";
+import BudgetPage from "./pages/BudgetPage.jsx";
 
 function App() {
   return (
     <Routes>
-      <Route path="/" element={<Home />} />
-      <Route path="/dashboard" element={<Dashboard />} />
-      <Route path="/login" element={<Login />} />
+      <Route path="/" element={<Navigate to="/dashboard" />} />
+
+      <Route element={<DashboardLayout />}>
+        <Route path="/dashboard" element={<DashboardPage />} />
+        <Route path="/dashboard/guests" element={<GuestsPage />} />
+        <Route path="/dashboard/budget" element={<BudgetPage />} />
+      </Route>
     </Routes>
   );
 }

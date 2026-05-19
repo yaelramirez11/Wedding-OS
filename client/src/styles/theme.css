@@ -1,0 +1,104 @@
+:root {
+  --wos-bg: #fbf8f5;
+  --wos-surface: #ffffff;
+  --wos-surface-soft: #fff4f5;
+
+  --wos-primary: #660033;
+  --wos-primary-dark: #4a0026;
+  --wos-rose: #f7dce3;
+  --wos-rose-soft: #fff0f3;
+  --wos-gold: #c89b5f;
+
+  --wos-text: #241c21;
+  --wos-muted: #7f7079;
+  --wos-border: rgba(102, 0, 51, 0.1);
+
+  --wos-radius-xl: 24px;
+  --wos-radius-2xl: 32px;
+
+  --wos-shadow-soft: 0 18px 50px rgba(70, 35, 45, 0.08);
+  --wos-shadow-card: 0 10px 30px rgba(70, 35, 45, 0.07);
+}
+
+body {
+  background: var(--wos-bg);
+  color: var(--wos-text);
+}
+
+.wos-card {
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.96),
+    rgba(255, 248, 250, 0.96)
+  );
+
+  border: 1px solid rgba(102, 0, 51, 0.08);
+
+  border-radius: 32px;
+
+  box-shadow:
+    0 8px 30px rgba(90, 40, 60, 0.05),
+    0 24px 60px rgba(90, 40, 60, 0.08);
+
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+.wos-card:hover {
+  transform: translateY(-2px);
+
+  box-shadow: 0 18px 50px rgba(90, 40, 60, 0.12);
+}
+
+.wos-soft-card {
+  background: linear-gradient(135deg, #fff8f9, #fff1f4);
+
+  border: 1px solid rgba(102, 0, 51, 0.08);
+
+  border-radius: 32px;
+
+  box-shadow: 0 20px 60px rgba(90, 40, 60, 0.08);
+}
+
+.wos-input {
+  width: 100%;
+  border: 1px solid rgba(102, 0, 51, 0.12);
+  border-radius: 18px;
+  padding: 12px 16px;
+  outline: none;
+  background: white;
+  transition: 0.2s ease;
+}
+
+.wos-input:focus {
+  border-color: var(--wos-primary);
+  box-shadow: 0 0 0 4px rgba(102, 0, 51, 0.08);
+}
+
+.wos-button {
+  background: var(--wos-primary);
+  color: white;
+  border-radius: 18px;
+  padding: 12px 18px;
+  font-weight: 600;
+  transition: 0.2s ease;
+}
+
+.wos-button:hover {
+  background: var(--wos-primary-dark);
+  transform: translateY(-1px);
+}
+
+.wos-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.wos-badge {
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
