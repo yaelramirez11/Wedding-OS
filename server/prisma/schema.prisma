@@ -68,3 +68,97 @@ model BudgetItem {
   notes       String?
   createdAt   DateTime       @default(now())
 }
+
+enum HoneymoonCategory {
+  hotel
+  flight
+  transportation
+  activities
+  food
+  documents
+  shopping
+  other
+}
+
+enum HoneymoonStatus {
+  planned
+  notPlanned
+  booked
+  paid
+  advancePaid
+}
+
+model HoneymoonItem {
+  id          Int              @id @default(autoincrement())
+  title       String
+  category    HoneymoonCategory @default(other)
+  cost        Float            @default(0)
+  advancePaid Float            @default(0)
+  status      HoneymoonStatus  @default(planned)
+  date        DateTime?
+  notes       String?
+  createdAt   DateTime         @default(now())
+}
+
+enum TimelineType {
+  planning
+  weddingDay
+  honeymoon
+}
+
+enum TimelineStatus {
+  pending
+  inProgress
+  completed
+  cancelled
+}
+
+enum TimelinePriority {
+  low
+  medium
+  high
+}
+
+model TimelineItem {
+  id        Int              @id @default(autoincrement())
+  title     String
+  type      TimelineType     @default(planning)
+  category  String           @default("general")
+  status    TimelineStatus   @default(pending)
+  priority  TimelinePriority @default(medium)
+  date      DateTime?
+  time      String?
+  notes     String?
+  order     Int              @default(0)
+  isCurrent Boolean          @default(false)
+  createdAt DateTime         @default(now())
+}
+
+enum DashboardStatus {
+  Live
+  InProgress
+  Next
+  Done
+}
+
+model DashboardCard {
+  id        Int             @id @default(autoincrement())
+  key       String          @unique
+  title     String
+  status    DashboardStatus @default(Next)
+  text      String
+  accent    String
+  icon      String
+  path      String?
+  order     Int             @default(0)
+  createdAt DateTime        @default(now())
+}
+
+model DashboardTask {
+  id        Int             @id @default(autoincrement())
+  title     String
+  desc      String?
+  status    DashboardStatus @default(Next)
+  order     Int             @default(0)
+  createdAt DateTime        @default(now())
+}

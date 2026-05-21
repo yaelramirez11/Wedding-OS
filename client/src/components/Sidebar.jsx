@@ -5,7 +5,7 @@ const navItems = [
   { label: "Guests", path: "/dashboard/guests", icon: "🥂" },
   { label: "Budget", path: "/dashboard/budget", icon: "💲" },
   { label: "Honeymoon", path: "/dashboard/honeymoon", icon: "🏖️" },
-  { label: "Timeline", path: "/dashboard/timeline", icon: "□" },
+  { label: "Timeline", path: "/dashboard/timeline", icon: "🛣️ " },
 ];
 
 function Sidebar() {

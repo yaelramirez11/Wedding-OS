@@ -8,17 +8,17 @@ const statusConfig = {
   },
   confirmed: {
     label: "Confirmed",
-    message: "They’re coming ❤️",
+    message: "I'm coming ❤️",
     className: "bg-green-50 text-green-700",
   },
   declined: {
     label: "Declined",
-    message: "They can’t make it 😞",
+    message: "I can’t make it 😞",
     className: "bg-red-100 text-red-700",
   },
   maybe: {
     label: "Not Sure",
-    message: "They're not sure they'll make it 🤞",
+    message: "I'm not sure I'll make it 🤞",
     className: "bg-blue-50 text-black-700",
   },
 };

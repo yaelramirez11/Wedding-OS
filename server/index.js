@@ -3,6 +3,9 @@ const cors = require("cors");
 
 const guestRoutes = require("./routes/guestRoutes");
 const budgetRoutes = require("./routes/budgetRoutes");
+const honeymoonRoutes = require("./routes/honeymoonRoutes");
+const timelineRoutes = require("./routes/timelineRoutes");
+const dashboardRoutes = require("./routes/dashboardRoutes");
 
 const app = express();
 
@@ -17,6 +20,9 @@ app.get("/", (req, res) => {
 
 app.use("/guests", guestRoutes);
 app.use("/budget", budgetRoutes);
+app.use("/honeymoon", honeymoonRoutes);
+app.use("/timeline", timelineRoutes);
+app.use("/dashboard", dashboardRoutes);
 
 const PORT = 5000;
 

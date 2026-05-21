@@ -4,6 +4,8 @@ import DashboardLayout from "./layouts/DashboardLayout.jsx";
 import GuestsPage from "./pages/GuestsPage.jsx";
 import DashboardPage from "./pages/DashboardPage.jsx";
 import BudgetPage from "./pages/BudgetPage.jsx";
+import HoneymoonPage from "./pages/HoneymoonPage.jsx";
+import TimelinePage from "./pages/TimelinePage.jsx";
 
 function App() {
   return (
@@ -14,6 +16,8 @@ function App() {
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/dashboard/guests" element={<GuestsPage />} />
         <Route path="/dashboard/budget" element={<BudgetPage />} />
+        <Route path="/dashboard/honeymoon" element={<HoneymoonPage />} />
+        <Route path="/dashboard/timeline" element={<TimelinePage />} />
       </Route>
     </Routes>
   );

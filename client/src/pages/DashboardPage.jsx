@@ -1,20 +1,158 @@
+import { useEffect, useState } from "react";
+
+import {
+  fetchDashboardCards,
+  updateDashboardCard,
+  fetchDashboardTasks,
+  createDashboardTask,
+  updateDashboardTask,
+  createDashboardCard,
+} from "../services/dashboardService";
+
 function DashboardPage() {
+  const [categories, setCategories] = useState([]);
+  const [tasks, setTasks] = useState([]);
+
+  const [taskFilter, setTaskFilter] = useState("pending");
+  const [showForm, setShowForm] = useState(false);
+  const [newTitle, setNewTitle] = useState("");
+  const [newDesc, setNewDesc] = useState("");
+  const [newStatus, setNewStatus] = useState("Next");
+
+  const [showCardForm, setShowCardForm] = useState(false);
+  const [newCardTitle, setNewCardTitle] = useState("");
+  const [newCardText, setNewCardText] = useState("");
+  const [newCardStatus, setNewCardStatus] = useState("Next");
+  const [newCardIcon, setNewCardIcon] = useState("✨");
+  const [newCardPath, setNewCardPath] = useState("");
+
+  useEffect(() => {
+    loadDashboard();
+  }, []);
+
+  const loadDashboard = async () => {
+    try {
+      const [cardsData, tasksData] = await Promise.all([
+        fetchDashboardCards(),
+        fetchDashboardTasks(),
+      ]);
+
+      setCategories(cardsData);
+      setTasks(tasksData);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const handleCategoryStatusChange = async (id, newStatus) => {
+    try {
+      const updatedCard = await updateDashboardCard(id, {
+        status: newStatus,
+      });
+
+      setCategories((prev) =>
+        prev.map((cat) => (cat.id === id ? updatedCard : cat)),
+      );
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const handleTaskStatusChange = async (id, newStatus) => {
+    try {
+      const updatedTask = await updateDashboardTask(id, {
+        status: newStatus,
+      });
+
+      setTasks((prev) =>
+        prev.map((task) => (task.id === id ? updatedTask : task)),
+      );
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const handleAddTask = async (e) => {
+    e.preventDefault();
+
+    if (!newTitle.trim()) return;
+
+    try {
+      const createdTask = await createDashboardTask({
+        title: newTitle,
+        desc: newDesc,
+        status: newStatus,
+        order: tasks.length + 1,
+      });
+
+      setTasks((prev) => [...prev, createdTask]);
+
+      setNewTitle("");
+      setNewDesc("");
+      setNewStatus("Next");
+      setShowForm(false);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const handleAddCard = async (e) => {
+    e.preventDefault();
+
+    if (!newCardTitle.trim() || !newCardText.trim()) return;
+
+    try {
+      const createdCard = await createDashboardCard({
+        key: newCardTitle.toLowerCase().replaceAll(" ", "-"),
+        title: newCardTitle,
+        status: newCardStatus,
+        text: newCardText,
+        accent: "bg-[#f3edf8]",
+        icon: newCardIcon,
+        path: newCardPath.trim() || null,
+        order: categories.length + 1,
+      });
+
+      setCategories((prev) => [...prev, createdCard]);
+
+      setNewCardTitle("");
+      setNewCardText("");
+      setNewCardStatus("Next");
+      setNewCardIcon("✨");
+      setNewCardPath("");
+      setShowCardForm(false);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const filteredTasks = tasks.filter((task) => {
+    if (taskFilter === "completed") {
+      return task.status === "Done";
+    }
+
+    return task.status === "InProgress" || task.status === "Next";
+  });
+
+  const getStatusLabel = (status) => {
+    if (status === "InProgress") return "In Progress";
+
+    return status;
+  };
+
   return (
     <div className="space-y-8">
       <section className="relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-[#f6dde4] via-[#fdf6f7] to-[#fdeff2] border border-[#ead6dc] p-8 lg:p-12">
         <div className="absolute right-[-120px] top-[-100px] h-[260px] w-[260px] rounded-full bg-[#f2c8d4]/40" />
-
         <div className="absolute right-[60px] bottom-[-120px] h-[320px] w-[320px] rounded-full bg-[#f5dfe5]/60" />
 
         <div className="relative z-10 max-w-3xl">
           <p className="text-[#7f5f69] text-sm font-medium mb-6">
             Our Wedding + Honeymoon Interface 🍯
           </p>
-
           <h1 className="text-[#38131f] text-5xl lg:text-6xl font-semibold leading-[1.05] tracking-tight">
             One cozy place for everything we’re planning together.
           </h1>
-
           <p className="text-[#6e6168] text-lg mt-7 leading-relaxed max-w-2xl">
             Guests, RSVP, budget, honeymoon ideas, documents, memories and all
             the little details for our wedding season ❤️
@@ -22,118 +160,313 @@ function DashboardPage() {
         </div>
       </section>
 
-      <section className="grid grid-cols-1 md:grid-cols-3 gap-5">
-        {[
-          {
-            title: "Guests",
-            status: "Live",
-            text: "Let’s keep track of who’s invited, confirmed or still pending.",
-            accent: "bg-[#fff0f3]",
-          },
-          {
-            title: "Budget",
-            status: "Live",
-            text: "A simple place to organize costs, deposits and payments without stress.",
-            accent: "bg-[#f8efe7]",
-          },
-          {
-            title: "Honeymoon",
-            status: "Next",
-            text: "Flights, hotel, itinerary, ideas and documents for our trip.",
-            accent: "bg-[#f3edf8]",
-          },
-        ].map((card) => (
-          <div
-            key={card.title}
-            className="wos-card rounded-[2rem] p-6 border border-[#eadde2] shadow-[0_12px_35px_rgba(80,40,55,0.06)] hover:-translate-y-1 hover:shadow-[0_18px_45px_rgba(80,40,55,0.1)] transition"
+      <section className="wos-card rounded-[2rem] p-6 border border-[#eadde2] bg-white shadow-[0_12px_35px_rgba(80,40,55,0.06)]">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <p className="text-sm text-[#8d7380]">Dashboard modules</p>
+            <h2 className="text-3xl font-serif text-[#38131f] mt-2">
+              Add a new card
+            </h2>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setShowCardForm(!showCardForm)}
+            className="self-start sm:self-center text-xs font-sans font-semibold bg-[#38131f] text-white rounded-full px-4 py-2 hover:bg-opacity-90 transition shadow-sm shrink-0"
           >
-            <div
-              className={`h-12 w-12 rounded-2xl ${card.accent} mb-5 flex items-center justify-center text-xl`}
-            >
-              {
-                {
-                  Guests: "👥",
-                  Budget: "🐷",
-                  Honeymoon: "✈️",
-                }[card.title]
-              }
+            {showCardForm ? "Close Form ✕" : "+ Add Card"}
+          </button>
+        </div>
+
+        {showCardForm && (
+          <form
+            onSubmit={handleAddCard}
+            className="mt-6 p-5 border border-[#eadde2] bg-[#fffbfb] rounded-3xl space-y-4"
+          >
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <input
+                value={newCardTitle}
+                onChange={(e) => setNewCardTitle(e.target.value)}
+                placeholder="Card title"
+                className="text-xs font-sans border border-[#eadde2] rounded-xl px-3 py-2.5 bg-white text-[#38131f] focus:outline-none focus:ring-1 focus:ring-[#38131f]"
+                required
+              />
+
+              <select
+                value={newCardStatus}
+                onChange={(e) => setNewCardStatus(e.target.value)}
+                className="text-xs font-sans border border-[#eadde2] rounded-xl px-3 py-2.5 bg-white text-[#38131f] focus:outline-none focus:ring-1 focus:ring-[#38131f] cursor-pointer"
+              >
+                <option value="Live">Live</option>
+                <option value="InProgress">In Progress</option>
+                <option value="Next">Next</option>
+              </select>
             </div>
 
-            <p className="text-sm text-[#8d7380]">{card.title}</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <input
+                value={newCardIcon}
+                onChange={(e) => setNewCardIcon(e.target.value)}
+                placeholder="Icon"
+                className="text-xs font-sans border border-[#eadde2] rounded-xl px-3 py-2.5 bg-white text-[#38131f] focus:outline-none focus:ring-1 focus:ring-[#38131f]"
+              />
 
-            <h2 className="text-3xl font-serif font-semibold text-[#38131f] mt-2">
-              {card.status}
-            </h2>
+              <input
+                value={newCardPath}
+                onChange={(e) => setNewCardPath(e.target.value)}
+                placeholder="/dashboard/example"
+                className="text-xs font-sans border border-[#eadde2] rounded-xl px-3 py-2.5 bg-white text-[#38131f] focus:outline-none focus:ring-1 focus:ring-[#38131f]"
+              />
+            </div>
 
-            <p className="text-sm text-[#7f7079] mt-3 leading-relaxed">
-              {card.text}
-            </p>
-          </div>
-        ))}
+            <input
+              value={newCardText}
+              onChange={(e) => setNewCardText(e.target.value)}
+              placeholder="Short card description..."
+              className="w-full text-xs font-sans border border-[#eadde2] rounded-xl px-3 py-2.5 bg-white text-[#38131f] focus:outline-none focus:ring-1 focus:ring-[#38131f]"
+              required
+            />
+
+            <div className="flex justify-end">
+              <button
+                type="submit"
+                className="text-xs font-sans font-semibold bg-emerald-600 text-white rounded-full px-5 py-2 hover:bg-opacity-90 transition shadow-sm"
+              >
+                Save Card
+              </button>
+            </div>
+          </form>
+        )}
       </section>
 
-      <section className="grid grid-cols-1 xl:grid-cols-[1.2fr_0.8fr] gap-5">
-        <div className="wos-card rounded-[2rem] p-8 border border-[#eadde2] shadow-[0_12px_35px_rgba(80,40,55,0.06)]">
-          <p className="text-sm text-[#8d7380]">Planning progress</p>
+      <section className="grid grid-cols-1 md:grid-cols-3 gap-5">
+        {categories.map((card) => {
+          const isLive = card.status === "Live";
 
-          <h2 className="text-3xl font-serif text-[#38131f] mt-2">
-            What we're working on
-          </h2>
+          return (
+            <div
+              key={card.id}
+              className="wos-card relative overflow-hidden rounded-[2rem] p-6 border border-[#eadde2] bg-white shadow-[0_12px_35px_rgba(80,40,55,0.06)] hover:-translate-y-1 hover:shadow-[0_18px_45px_rgba(80,40,55,0.1)] transition"
+            >
+              {isLive && (
+                <div className="absolute top-4 right-4 flex h-2.5 w-2.5 pointer-events-none z-0">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                </div>
+              )}
 
-          <div className="mt-8 space-y-5">
-            {[
-              {
-                title: "Guests",
-                desc: "Guest list, RSVP and organization.",
-                status: "Done",
-              },
-
-              {
-                title: "Budget",
-                desc: "Track costs and payments together.",
-                status: "In Progress",
-              },
-
-              {
-                title: "Honeymoon",
-                desc: "Flights, hotels, ideas and itinerary.",
-                status: "Next",
-              },
-            ].map((item) => (
-              <div
-                key={item.title}
-                className="rounded-3xl border border-[#f1e4e7] p-5 hover:bg-[#fff9fa] transition"
-              >
-                <div className="flex justify-between items-start gap-4">
-                  <div>
-                    <h3 className="font-semibold text-[#38131f]">
-                      {item.title}
-                    </h3>
-
-                    <p className="text-sm text-[#8d7380] mt-2">{item.desc}</p>
-                  </div>
-
-                  <span
-                    className={`
-              text-xs
-              rounded-full
-              px-3
-              py-1
-
-              ${
-                item.status === "Done"
-                  ? "bg-[#eaf7ef] text-[#2f7a45]"
-                  : item.status === "In Progress"
-                    ? "bg-[#eef0ff] text-[#4656d6]"
-                    : "bg-[#fff4e5] text-[#9d6a00]"
-              }
-            `}
+              <div className="flex items-center justify-between gap-2 mb-4 relative z-10">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div
+                    className={`h-10 w-10 rounded-xl ${card.accent} flex items-center justify-center text-lg shrink-0`}
                   >
-                    {item.status}
+                    {card.icon}
+                  </div>
+                  <p className="text-sm font-medium text-[#8d7380] truncate">
+                    {card.title}
+                  </p>
+                </div>
+
+                <div
+                  className="relative shrink-0 ml-auto mr-4"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <select
+                    value={card.status}
+                    onChange={(e) =>
+                      handleCategoryStatusChange(card.id, e.target.value)
+                    }
+                    className="text-xs font-sans font-semibold text-[#38131f] bg-[#fcf8f9] border border-[#eadde2] rounded-full pl-3 pr-7 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#38131f] cursor-pointer appearance-none text-center min-w-[105px]"
+                  >
+                    <option value="Live">Live</option>
+                    <option value="InProgress">In Progress</option>
+                    <option value="Next">Next</option>
+                  </select>
+                  <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[9px] text-[#38131f]/60 pointer-events-none">
+                    ▼
                   </span>
                 </div>
               </div>
-            ))}
+
+              <div className="relative z-10 flex flex-col justify-between h-[calc(100%-3.5rem)]">
+                <p className="text-sm text-[#7f7079] leading-relaxed">
+                  {card.text}
+                </p>
+
+                {isLive && card.path && (
+                  <div className="mt-4 flex justify-end">
+                    <a
+                      href={card.path}
+                      className="text-xs font-sans font-semibold text-[#38131f] text-opacity-80 hover:text-opacity-100 hover:underline transition tracking-tight"
+                    >
+                      Take me there! →
+                    </a>
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </section>
+
+      <section className="grid grid-cols-1 xl:grid-cols-[1.2fr_0.8fr] gap-5">
+        <div className="wos-card rounded-[2rem] p-8 border border-[#eadde2] bg-white shadow-[0_12px_35px_rgba(80,40,55,0.06)]">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <p className="text-sm text-[#8d7380]">Planning progress</p>
+              <h2 className="text-3xl font-serif text-[#38131f] mt-2">
+                What we're working on
+              </h2>
+            </div>
+
+            <button
+              onClick={() => setShowForm(!showForm)}
+              className="self-start sm:self-center text-xs font-sans font-semibold bg-[#38131f] text-white rounded-full px-4 py-2 hover:bg-opacity-90 transition shadow-sm shrink-0"
+            >
+              {showForm ? "Close Form ✕" : "+ Add Task"}
+            </button>
+          </div>
+
+          <div className="flex gap-2 mt-6 border-b border-[#f1e4e7] pb-3">
+            <button
+              onClick={() => setTaskFilter("pending")}
+              className={`text-xs font-sans font-semibold px-4 py-1.5 rounded-full transition ${
+                taskFilter === "pending"
+                  ? "bg-[#fff0f3] text-[#38131f] border border-[#eadde2]"
+                  : "text-[#8d7380] hover:text-[#38131f]"
+              }`}
+            >
+              Pending Tasks
+            </button>
+
+            <button
+              onClick={() => setTaskFilter("completed")}
+              className={`text-xs font-sans font-semibold px-4 py-1.5 rounded-full transition ${
+                taskFilter === "completed"
+                  ? "bg-[#eaf7ef] text-[#2f7a45] border border-emerald-200"
+                  : "text-[#8d7380] hover:text-[#38131f]"
+              }`}
+            >
+              Completed
+            </button>
+          </div>
+
+          {showForm && (
+            <form
+              onSubmit={handleAddTask}
+              className="mt-6 p-5 border border-[#eadde2] bg-[#fffbfb] rounded-3xl space-y-4"
+            >
+              <h4 className="text-sm font-semibold text-[#38131f]">
+                Create a new task
+              </h4>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <input
+                  type="text"
+                  placeholder="Task title (e.g. Catering)"
+                  value={newTitle}
+                  onChange={(e) => setNewTitle(e.target.value)}
+                  className="text-xs font-sans border border-[#eadde2] rounded-xl px-3 py-2.5 bg-white text-[#38131f] focus:outline-none focus:ring-1 focus:ring-[#38131f]"
+                  required
+                />
+
+                <select
+                  value={newStatus}
+                  onChange={(e) => setNewStatus(e.target.value)}
+                  className="text-xs font-sans border border-[#eadde2] rounded-xl px-3 py-2.5 bg-white text-[#38131f] focus:outline-none focus:ring-1 focus:ring-[#38131f] cursor-pointer"
+                >
+                  <option value="InProgress">In Progress</option>
+                  <option value="Next">Next</option>
+                  <option value="Done">Done</option>
+                </select>
+              </div>
+
+              <input
+                type="text"
+                placeholder="Short description..."
+                value={newDesc}
+                onChange={(e) => setNewDesc(e.target.value)}
+                className="w-full text-xs font-sans border border-[#eadde2] rounded-xl px-3 py-2.5 bg-white text-[#38131f] focus:outline-none focus:ring-1 focus:ring-[#38131f]"
+              />
+
+              <div className="flex justify-end">
+                <button
+                  type="submit"
+                  className="text-xs font-sans font-semibold bg-emerald-600 text-white rounded-full px-5 py-2 hover:bg-opacity-90 transition shadow-sm"
+                >
+                  Save Task
+                </button>
+              </div>
+            </form>
+          )}
+
+          <div className="mt-6 space-y-5">
+            {filteredTasks.length > 0 ? (
+              filteredTasks.map((item) => {
+                const isDone = item.status === "Done";
+
+                return (
+                  <div
+                    key={item.id}
+                    className={`rounded-3xl border p-5 transition ${
+                      isDone
+                        ? "border-emerald-100 bg-[#f4fbf7]/60 opacity-75"
+                        : "border-[#f1e4e7] hover:bg-[#fff9fa]"
+                    }`}
+                  >
+                    <div className="flex justify-between items-center gap-4">
+                      <div className="flex items-center gap-3">
+                        {isDone && (
+                          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 text-xs font-bold shrink-0">
+                            ✓
+                          </span>
+                        )}
+
+                        <div>
+                          <h3
+                            className={`font-semibold text-[#38131f] transition ${
+                              isDone ? "line-through text-gray-400" : ""
+                            }`}
+                          >
+                            {item.title}
+                          </h3>
+
+                          <p
+                            className={`text-sm mt-1 transition ${
+                              isDone ? "text-gray-400" : "text-[#8d7380]"
+                            }`}
+                          >
+                            {item.desc}
+                          </p>
+                        </div>
+                      </div>
+
+                      <select
+                        value={item.status}
+                        onChange={(e) =>
+                          handleTaskStatusChange(item.id, e.target.value)
+                        }
+                        className={`text-xs rounded-full px-3 py-1.5 font-medium border-0 focus:ring-2 focus:ring-[#38131f] cursor-pointer appearance-none text-center ${
+                          item.status === "Done"
+                            ? "bg-[#eaf7ef] text-[#2f7a45]"
+                            : item.status === "InProgress"
+                              ? "bg-[#eef0ff] text-[#4656d6]"
+                              : "bg-[#fff4e5] text-[#9d6a00]"
+                        }`}
+                      >
+                        <option value="Done">Done</option>
+                        <option value="InProgress">In Progress</option>
+                        <option value="Next">Next</option>
+                      </select>
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <p className="text-xs text-center text-[#8d7380] py-6 bg-gray-50/50 rounded-2xl border border-dashed border-gray-200">
+                No tasks found in this section.
+              </p>
+            )}
           </div>
         </div>
 
@@ -149,13 +482,24 @@ function DashboardPage() {
             tiny details we don’t want to forget.
           </p>
 
-          <div className="mt-8 rounded-[1.75rem] wos-card/70 p-5 border border-white">
+          <div className="mt-8 rounded-[1.75rem] bg-white/70 p-5 border border-white shadow-sm">
             <p className="text-sm font-semibold text-[#38131f]">
               Current milestone
             </p>
 
             <p className="text-sm text-[#8d7380] mt-2">
-              Finish our wedding budget and unlock honeymoon planning ✈️
+              Continue honeymoon planning and prepare our timeline 💗
+            </p>
+          </div>
+
+          <div className="mt-8 rounded-[1.75rem] bg-white/70 p-5 border border-white shadow-sm">
+            <p className="text-sm font-semibold text-[#38131f]">
+              Next milestone
+            </p>
+
+            <p className="text-sm text-[#8d7380] mt-2">
+              Implement photos section and improve styling by adding our cute
+              lovely pictures 📸
             </p>
           </div>
         </div>
