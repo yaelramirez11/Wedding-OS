@@ -28,6 +28,8 @@ model Guest {
   plusOneAllowed Boolean     @default(false)
   notes          String?
   createdAt      DateTime    @default(now())
+  tableId        Int?
+  table          WeddingTable? @relation(fields: [tableId], references: [id])
 }
 
 enum BudgetStatus {
@@ -161,4 +163,15 @@ model DashboardTask {
   status    DashboardStatus @default(Next)
   order     Int             @default(0)
   createdAt DateTime        @default(now())
+}
+
+model WeddingTable {
+  id        Int      @id @default(autoincrement())
+  name      String
+  label     String?
+  order     Int      @default(0)
+  capacity  Int      @default(10)
+  createdAt DateTime @default(now())
+
+  guests    Guest[]
 }

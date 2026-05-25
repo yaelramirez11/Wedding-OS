@@ -6,6 +6,7 @@ import DashboardPage from "./pages/DashboardPage.jsx";
 import BudgetPage from "./pages/BudgetPage.jsx";
 import HoneymoonPage from "./pages/HoneymoonPage.jsx";
 import TimelinePage from "./pages/TimelinePage.jsx";
+import TablesPage from "./pages/TablesPage.jsx";
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
         <Route path="/dashboard/budget" element={<BudgetPage />} />
         <Route path="/dashboard/honeymoon" element={<HoneymoonPage />} />
         <Route path="/dashboard/timeline" element={<TimelinePage />} />
+        <Route path="/dashboard/tables" element={<TablesPage />} />
       </Route>
     </Routes>
   );

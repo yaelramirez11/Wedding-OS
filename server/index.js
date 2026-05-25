@@ -6,7 +6,7 @@ const budgetRoutes = require("./routes/budgetRoutes");
 const honeymoonRoutes = require("./routes/honeymoonRoutes");
 const timelineRoutes = require("./routes/timelineRoutes");
 const dashboardRoutes = require("./routes/dashboardRoutes");
-
+const tableRoutes = require("./routes/tableRoutes");
 const app = express();
 
 app.use(cors());
@@ -23,6 +23,7 @@ app.use("/budget", budgetRoutes);
 app.use("/honeymoon", honeymoonRoutes);
 app.use("/timeline", timelineRoutes);
 app.use("/dashboard", dashboardRoutes);
+app.use("/tables", tableRoutes);
 
 const PORT = 5000;
 
