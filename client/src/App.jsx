@@ -7,6 +7,7 @@ import BudgetPage from "./pages/BudgetPage.jsx";
 import HoneymoonPage from "./pages/HoneymoonPage.jsx";
 import TimelinePage from "./pages/TimelinePage.jsx";
 import TablesPage from "./pages/TablesPage.jsx";
+import WeddingHubPage from "./pages/WeddingHubPage.jsx";
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
       <Route path="/" element={<Navigate to="/dashboard" />} />
 
       <Route element={<DashboardLayout />}>
+        <Route path="/dashboard/wedding-hub" element={<WeddingHubPage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/dashboard/guests" element={<GuestsPage />} />
         <Route path="/dashboard/budget" element={<BudgetPage />} />

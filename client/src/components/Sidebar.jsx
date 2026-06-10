@@ -1,6 +1,7 @@
 import { NavLink } from "react-router-dom";
 
 const navItems = [
+  { label: "Wedding Hub", path: "/dashboard/wedding-hub", icon: "⏱️" },
   { label: "Dashboard", path: "/dashboard", icon: "❤️‍🔥 " },
   { label: "Guests", path: "/dashboard/guests", icon: "🥂" },
   { label: "Tables", path: "/dashboard/tables", icon: "🪑" },

@@ -1,6 +1,13 @@
 const prisma = require("../lib/prisma");
 
 const TABLE_CAPACITY = 10;
+const SWEETHEART_TABLE_CAPACITY = 2;
+
+const getCapacityForTable = (table) => {
+  return table.name === "Sweetheart Table"
+    ? SWEETHEART_TABLE_CAPACITY
+    : TABLE_CAPACITY;
+};
 
 const getTables = async () => {
   return prisma.weddingTable.findMany({
@@ -11,7 +18,6 @@ const getTables = async () => {
         },
       },
     },
-
     orderBy: {
       order: "asc",
     },
@@ -19,10 +25,15 @@ const getTables = async () => {
 };
 
 const createTable = async (data) => {
+  const capacity =
+    data.name === "Sweetheart Table"
+      ? SWEETHEART_TABLE_CAPACITY
+      : TABLE_CAPACITY;
+
   return prisma.weddingTable.create({
     data: {
       ...data,
-      capacity: TABLE_CAPACITY,
+      capacity,
     },
   });
 };
@@ -32,7 +43,6 @@ const updateTable = async (id, data) => {
     where: {
       id: Number(id),
     },
-
     data,
   });
 };
@@ -42,7 +52,6 @@ const deleteTable = async (id) => {
     where: {
       tableId: Number(id),
     },
-
     data: {
       tableId: null,
     },
@@ -61,12 +70,23 @@ const assignGuestToTable = async ({ guestId, tableId }) => {
       where: {
         id: guestId,
       },
-
       data: {
         tableId: null,
       },
     });
   }
+
+  const table = await prisma.weddingTable.findUnique({
+    where: {
+      id: tableId,
+    },
+  });
+
+  if (!table) {
+    throw new Error("Table not found.");
+  }
+
+  const capacity = getCapacityForTable(table);
 
   const count = await prisma.guest.count({
     where: {
@@ -74,15 +94,14 @@ const assignGuestToTable = async ({ guestId, tableId }) => {
     },
   });
 
-  if (count >= TABLE_CAPACITY) {
-    throw new Error("This table already has 10 guests.");
+  if (count >= capacity) {
+    throw new Error(`This table already has ${capacity} guests.`);
   }
 
   return prisma.guest.update({
     where: {
       id: guestId,
     },
-
     data: {
       tableId,
     },
@@ -94,7 +113,6 @@ const getUnseatedGuests = async () => {
     where: {
       tableId: null,
     },
-
     orderBy: {
       createdAt: "asc",
     },
