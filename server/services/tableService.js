@@ -59,6 +59,10 @@ const deleteTable = async (userId, id) => {
     throw notFoundError();
   }
 
+  if (table.name === "Sweetheart Table") {
+    throw createError("The sweetheart table cannot be removed.", 400);
+  }
+
   await prisma.guest.updateMany({
     where: {
       tableId: Number(id),

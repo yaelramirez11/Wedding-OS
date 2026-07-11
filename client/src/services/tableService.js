@@ -10,6 +10,11 @@ export const createTable = async (data) =>
     body: JSON.stringify(data),
   });
 
+export const deleteTable = async (tableId) =>
+  apiFetch(`/tables/${tableId}`, {
+    method: "DELETE",
+  });
+
 export const assignGuestToTable = async (guestId, tableId) =>
   apiFetch("/tables/assign", {
     method: "PATCH",

@@ -116,7 +116,313 @@ body,
 
 .wos-table-map {
   min-height: auto;
-  padding: 1rem;
+  padding: 0.75rem;
+}
+
+.wos-tables-grid {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.wos-table-card-regular {
+  background: rgba(255, 255, 255, 0.96);
+  border-color: #eadde2;
+  box-shadow: 0 16px 45px rgba(80, 40, 55, 0.08);
+}
+
+.wos-table-card-label {
+  color: #8d7380;
+}
+
+.wos-table-card-title {
+  color: #38131f;
+}
+
+.wos-table-capacity-badge {
+  background: #fff8fa;
+  color: #8d7380;
+}
+
+.wos-table-capacity-full {
+  background: #ecfdf5;
+  color: #047857;
+}
+
+.wos-table-delete-btn {
+  border-color: rgba(234, 221, 226, 0.85);
+  background: rgba(255, 255, 255, 0.92);
+  color: #8d7380;
+  box-shadow: 0 4px 12px rgba(80, 40, 55, 0.06);
+}
+
+[data-theme="dark"] .wos-table-card-regular {
+  background: var(--wos-surface);
+  border-color: var(--wos-border-soft);
+  box-shadow: 0 16px 45px rgba(0, 0, 0, 0.22);
+}
+
+[data-theme="dark"] .wos-table-card-label {
+  color: var(--wos-muted);
+}
+
+[data-theme="dark"] .wos-table-card-title {
+  color: var(--wos-heading);
+}
+
+[data-theme="dark"] .wos-table-capacity-badge {
+  background: var(--wos-surface-soft);
+  color: var(--wos-muted);
+}
+
+[data-theme="dark"] .wos-table-capacity-full {
+  background: rgba(16, 185, 129, 0.15);
+  color: #6ee7b7;
+}
+
+[data-theme="dark"] .wos-table-delete-btn {
+  border-color: var(--wos-border-soft);
+  background: var(--wos-surface-muted);
+  color: var(--wos-muted);
+}
+
+[data-theme="dark"] .wos-table-delete-btn:hover {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.35);
+  color: #fca5a5;
+}
+
+[data-theme="dark"] .wos-table-map {
+  background: linear-gradient(135deg, #1d1418, #171117 55%, #1a1216) !important;
+  border-color: var(--wos-border-soft) !important;
+}
+
+[data-theme="dark"] .wos-table-map-frame {
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+[data-theme="dark"] .wos-table-card-glow {
+  background-color: rgba(255, 255, 255, 0.04) !important;
+}
+
+[data-theme="dark"] .wos-banquet-seat-light {
+  background: var(--wos-surface-soft);
+  border-color: var(--wos-border-soft);
+  color: var(--wos-heading);
+}
+
+[data-theme="dark"] .wos-banquet-seat-empty:not(.wos-banquet-seat-empty-dark) {
+  border-color: var(--wos-border-soft);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--wos-muted);
+}
+
+[data-theme="dark"] .wos-banquet-surface:not(.wos-banquet-surface-dark) {
+  border-color: var(--wos-border-soft);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.02) 100%),
+    repeating-linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.04) 0,
+      rgba(255, 255, 255, 0.04) 1px,
+      transparent 1px,
+      transparent 12px
+    );
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+[data-theme="dark"] .wos-banquet-seat-badge {
+  box-shadow: 0 0 0 2px var(--wos-surface);
+}
+
+[data-theme="dark"] .wos-banquet-seat-drag:hover {
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.24);
+}
+
+.wos-banquet-layout {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.45rem;
+  margin-top: 1.25rem;
+  width: 100%;
+}
+
+.wos-banquet-layout-sweetheart {
+  margin-top: 1rem;
+}
+
+.wos-banquet-head,
+.wos-banquet-foot {
+  width: min(100%, 8.5rem);
+}
+
+.wos-banquet-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(4.75rem, 5.75rem) minmax(0, 1fr);
+  gap: 0.4rem 0.55rem;
+  width: 100%;
+  align-items: stretch;
+}
+
+.wos-banquet-body-sweetheart {
+  grid-template-columns: minmax(0, 1fr) minmax(5rem, 6.5rem) minmax(0, 1fr);
+  align-items: center;
+}
+
+.wos-banquet-side {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 0.35rem;
+  min-height: 7.5rem;
+}
+
+.wos-banquet-surface {
+  min-height: 7.5rem;
+  border-radius: 0.75rem;
+  border: 1px solid #e8d5cf;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(247, 239, 232, 0.98) 100%),
+    repeating-linear-gradient(
+      90deg,
+      rgba(102, 0, 51, 0.025) 0,
+      rgba(102, 0, 51, 0.025) 1px,
+      transparent 1px,
+      transparent 12px
+    );
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.95),
+    0 10px 24px rgba(80, 40, 55, 0.08);
+}
+
+.wos-banquet-surface-dark {
+  border-color: rgba(255, 255, 255, 0.14);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0.04) 100%),
+    repeating-linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.05) 0,
+      rgba(255, 255, 255, 0.05) 1px,
+      transparent 1px,
+      transparent 12px
+    );
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+.wos-banquet-surface-sweetheart {
+  min-height: 3.75rem;
+}
+
+.wos-banquet-seat-wrap {
+  position: relative;
+  width: 100%;
+}
+
+.wos-banquet-seat {
+  width: 100%;
+  min-height: 1.65rem;
+  border-radius: 9999px;
+  padding: 0.35rem 0.55rem 0.35rem 0.65rem;
+  font-size: 0.68rem;
+  font-weight: 600;
+  line-height: 1.2;
+  border: 1px solid #eadde2;
+  box-shadow: 0 4px 12px rgba(80, 40, 55, 0.06);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.wos-banquet-seat-light {
+  background: #fff8fa;
+  color: #38131f;
+}
+
+.wos-banquet-seat-dark {
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.18);
+  color: #fff;
+}
+
+.wos-banquet-seat-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-style: dashed;
+  border-color: #eadde2;
+  background: rgba(255, 255, 255, 0.45);
+  color: #c6aeb7;
+  font-size: 0.62rem;
+  font-weight: 500;
+  box-shadow: none;
+}
+
+.wos-banquet-seat-empty-dark {
+  border-color: rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.35);
+}
+
+.wos-banquet-seat-head,
+.wos-banquet-seat-foot {
+  margin-inline: auto;
+}
+
+.wos-banquet-seat-name {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.wos-banquet-seat-badge {
+  position: absolute;
+  top: -0.2rem;
+  right: -0.1rem;
+  z-index: 2;
+  height: 0.45rem;
+  width: 0.45rem;
+  border-radius: 9999px;
+  box-shadow: 0 0 0 2px #fff;
+}
+
+.wos-banquet-seat-drag {
+  cursor: grab;
+}
+
+.wos-banquet-seat-drag:active {
+  cursor: grabbing;
+}
+
+.wos-banquet-seat-drag:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(80, 40, 55, 0.1);
+}
+
+.wos-banquet-seat-tap {
+  cursor: pointer;
+}
+
+.wos-banquet-seat-tap:active {
+  transform: scale(0.98);
+}
+
+.wos-table-card {
+  min-height: auto;
+  min-width: 0;
+}
+
+@media (min-width: 640px) {
+  .wos-table-map {
+    padding: 1rem;
+  }
+
+  .wos-banquet-seat {
+    font-size: 0.72rem;
+    min-height: 1.75rem;
+  }
+
+  .wos-banquet-head,
+  .wos-banquet-foot {
+    width: min(100%, 9.5rem);
+  }
 }
 
 @media (min-width: 768px) {
@@ -125,10 +431,72 @@ body,
   }
 }
 
+@media (min-width: 900px) {
+  .wos-tables-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) and (max-width: 1279px) {
+  .wos-banquet-body {
+    grid-template-columns: minmax(0, 1fr) minmax(4rem, 4.75rem) minmax(0, 1fr);
+  }
+
+  .wos-banquet-side,
+  .wos-banquet-surface {
+    min-height: 7rem;
+  }
+}
+
+@media (max-width: 420px) {
+  .wos-banquet-body {
+    grid-template-columns: minmax(0, 1fr) minmax(3.35rem, 4rem) minmax(0, 1fr);
+    gap: 0.3rem 0.4rem;
+  }
+
+  .wos-banquet-body-sweetheart {
+    grid-template-columns: minmax(0, 1fr) minmax(4rem, 4.75rem) minmax(0, 1fr);
+  }
+
+  .wos-banquet-side,
+  .wos-banquet-surface {
+    min-height: 6.25rem;
+  }
+
+  .wos-banquet-surface-sweetheart {
+    min-height: 3.25rem;
+  }
+
+  .wos-banquet-head,
+  .wos-banquet-foot {
+    width: min(100%, 7.5rem);
+  }
+
+  .wos-banquet-seat {
+    font-size: 0.62rem;
+    min-height: 1.5rem;
+    padding-inline: 0.45rem;
+  }
+
+  .wos-banquet-seat-empty {
+    font-size: 0.58rem;
+  }
+}
+
 @media (min-width: 1280px) {
   .wos-table-map {
     min-height: 740px;
     padding: 2rem;
+  }
+}
+
+@media (min-width: 1536px) {
+  .wos-tables-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .wos-banquet-body {
+    grid-template-columns: minmax(0, 1fr) minmax(5rem, 6rem) minmax(0, 1fr);
   }
 }
 

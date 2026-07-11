@@ -268,10 +268,24 @@ export const getDefaultTableLabels = (t) => [
   { name: "Table 4", label: t("tables.labels.groomSide"), order: 4 },
   { name: "Table 5", label: t("tables.labels.family"), order: 5 },
   { name: "Table 6", label: t("tables.labels.friends"), order: 6 },
-  { name: "Table 7", label: t("tables.labels.specialGuests"), order: 7 },
-  { name: "Table 8", label: t("tables.labels.specialGuests"), order: 8 },
-  { name: "Sweetheart Table", label: t("tables.labels.brideAndGroom"), order: 9 },
+  { name: "Sweetheart Table", label: t("tables.labels.brideAndGroom"), order: 7 },
 ];
+
+export const getNextRegularTableConfig = (t, regularTables) => {
+  const tableNumbers = regularTables
+    .map((table) => /^Table (\d+)$/.exec(table.name)?.[1])
+    .filter(Boolean)
+    .map(Number);
+  const nextNumber = tableNumbers.length ? Math.max(...tableNumbers) + 1 : 1;
+  const nextOrder =
+    regularTables.reduce((max, table) => Math.max(max, table.order ?? 0), 0) + 1;
+
+  return {
+    name: `Table ${nextNumber}`,
+    label: t("tables.labels.newTable"),
+    order: nextOrder,
+  };
+};
 
 export const getWeddingHubBlessings = (t) => [
   {
