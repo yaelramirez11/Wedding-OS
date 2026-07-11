@@ -30,8 +30,8 @@ function DashboardLayout() {
       <div className="flex min-h-screen flex-col lg:flex-row">
         <Sidebar />
 
-        <div className="flex-1 min-w-0">
-          <header className="h-auto lg:h-20 border-b wos-header backdrop-blur-xl px-5 sm:px-8 lg:px-10 py-4 lg:py-0 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 sticky top-0 z-50">
+        <div className="flex-1 min-w-0 wos-main-shell">
+          <header className="h-auto lg:h-20 border-b wos-header backdrop-blur-xl px-4 sm:px-8 lg:px-10 py-4 lg:py-0 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 sticky top-0 z-40">
             <div>
               <p className="text-sm wos-text-muted">{t("common.appName")}</p>
               <h1 className="text-lg sm:text-xl font-semibold wos-text-heading">
@@ -63,7 +63,7 @@ function DashboardLayout() {
             </div>
           </header>
 
-          <main className="p-5 sm:p-8 lg:p-10">
+          <main className="p-4 sm:p-8 lg:p-10 max-w-full overflow-x-clip">
             <Outlet />
           </main>
         </div>

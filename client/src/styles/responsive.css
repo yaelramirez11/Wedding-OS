@@ -1,0 +1,219 @@
+html,
+body,
+#root {
+  overflow-x: clip;
+  max-width: 100%;
+}
+
+.wos-page-hero {
+  padding: 1.25rem;
+}
+
+@media (min-width: 640px) {
+  .wos-page-hero {
+    padding: 2rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .wos-page-hero {
+    padding: 3rem;
+  }
+}
+
+.wos-page-title {
+  font-size: clamp(1.75rem, 6vw, 3.75rem);
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+}
+
+.wos-page-subtitle {
+  font-size: clamp(0.95rem, 2.5vw, 1.125rem);
+}
+
+.wos-sticky-panel {
+  position: static;
+  top: auto;
+}
+
+@media (min-width: 1280px) {
+  .wos-sticky-panel {
+    position: sticky;
+    top: 6.5rem;
+  }
+}
+
+.wos-timeline-rail {
+  left: 1.375rem;
+}
+
+.wos-timeline-item {
+  padding-left: 4.5rem;
+}
+
+.wos-timeline-node {
+  height: 2.75rem;
+  width: 2.75rem;
+  font-size: 0.875rem;
+}
+
+@media (min-width: 640px) {
+  .wos-timeline-rail {
+    left: 1.75rem;
+  }
+
+  .wos-timeline-item {
+    padding-left: 5rem;
+  }
+
+  .wos-timeline-node {
+    height: 3.5rem;
+    width: 3.5rem;
+    font-size: 1.25rem;
+  }
+}
+
+.wos-action-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.wos-action-row > select,
+.wos-action-row > button,
+.wos-action-row > a {
+  width: 100%;
+  max-width: 100%;
+}
+
+@media (min-width: 640px) {
+  .wos-action-row {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .wos-action-row > select,
+  .wos-action-row > button,
+  .wos-action-row > a {
+    width: auto;
+  }
+}
+
+.wos-card-header-row {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+@media (min-width: 480px) {
+  .wos-card-header-row {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.wos-table-map {
+  min-height: auto;
+  padding: 1rem;
+}
+
+@media (min-width: 768px) {
+  .wos-table-map {
+    padding: 1.5rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  .wos-table-map {
+    min-height: 740px;
+    padding: 2rem;
+  }
+}
+
+.wos-countdown-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+@media (min-width: 1024px) {
+  .wos-countdown-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.wos-countdown-value {
+  font-size: clamp(1.75rem, 8vw, 3.75rem);
+}
+
+.wos-progress-ring-outer {
+  height: 9rem;
+  width: 9rem;
+}
+
+.wos-progress-ring-inner {
+  height: 6.5rem;
+  width: 6.5rem;
+}
+
+@media (min-width: 640px) {
+  .wos-progress-ring-outer {
+    height: 11rem;
+    width: 11rem;
+  }
+
+  .wos-progress-ring-inner {
+    height: 8rem;
+    width: 8rem;
+  }
+}
+
+.wos-sidebar-nav {
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.wos-sidebar-nav::-webkit-scrollbar {
+  display: none;
+}
+
+.wos-main-shell {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.wos-stat-value {
+  font-size: clamp(1.5rem, 5vw, 2.25rem);
+}
+
+.wos-section-title {
+  font-size: clamp(1.5rem, 4.5vw, 3rem);
+  line-height: 1.1;
+}
+
+.wos-progress-ring-sm {
+  height: 5rem;
+  width: 5rem;
+}
+
+.wos-progress-ring-sm-inner {
+  height: 3.5rem;
+  width: 3.5rem;
+}
+
+@media (min-width: 640px) {
+  .wos-progress-ring-sm {
+    height: 6rem;
+    width: 6rem;
+  }
+
+  .wos-progress-ring-sm-inner {
+    height: 4.5rem;
+    width: 4.5rem;
+  }
+}
+
+.wos-break-anywhere {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}

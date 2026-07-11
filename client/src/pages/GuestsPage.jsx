@@ -217,7 +217,7 @@ function GuestsPage() {
           <p className="wos-text-muted mt-2 max-w-2xl">{t("guests.subtitle")}</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-5">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-5">
           {[
             {
               label: t("guests.totalGuests"),
@@ -285,7 +285,7 @@ function GuestsPage() {
                 <p className="text-sm text-[#8d7380]">{card.label}</p>
 
                 <div className="flex items-end gap-3 mt-2">
-                  <h2 className="text-5xl font-bold text-[#241c21]">
+                  <h2 className="wos-stat-value font-bold text-[#241c21]">
                     {card.value}
                   </h2>
 

@@ -316,7 +316,7 @@ function TablesPage() {
         </div>
       )}
 
-      <section className="relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-[#fff0f3] via-[#fff8fa] to-[#f3edf8] border border-[#eadde2] p-8 lg:p-12">
+      <section className="relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-[#fff0f3] via-[#fff8fa] to-[#f3edf8] border border-[#eadde2] wos-page-hero">
         <div className="absolute -right-24 -top-24 h-72 w-72 rounded-full bg-white/50" />
         <div className="absolute right-24 -bottom-28 h-80 w-80 rounded-full bg-[#f2c8d4]/35" />
 
@@ -325,7 +325,7 @@ function TablesPage() {
             {t("tables.eyebrow")}
           </p>
 
-          <h1 className="wos-text-heading text-5xl lg:text-6xl font-semibold leading-[1.05] tracking-tight">
+          <h1 className="wos-text-heading wos-page-title font-semibold">
             {t("tables.title")}
           </h1>
 
@@ -338,21 +338,21 @@ function TablesPage() {
       <section className="grid grid-cols-1 md:grid-cols-3 gap-5">
         <div className="wos-card p-6">
           <p className="text-sm text-[#8d7380]">{t("tables.totalGuests")}</p>
-          <h2 className="text-4xl font-bold mt-2 wos-text-heading">
+          <h2 className="wos-stat-value font-bold mt-2 wos-text-heading">
             {totalGuests}
           </h2>
         </div>
 
         <div className="wos-card p-6">
           <p className="text-sm text-[#8d7380]">{t("tables.fullTables")}</p>
-          <h2 className="text-4xl font-bold mt-2 wos-text-heading">
+          <h2 className="wos-stat-value font-bold mt-2 wos-text-heading">
             {fullTables}/{tables.length}
           </h2>
         </div>
 
         <div className="wos-card p-6">
           <p className="text-sm text-[#8d7380]">{t("tables.guestsSeated")}</p>
-          <h2 className="text-4xl font-bold mt-2 wos-text-heading">
+          <h2 className="wos-stat-value font-bold mt-2 wos-text-heading">
             {seatedGuests} ({seatedPercentage}%)
           </h2>
         </div>
@@ -395,8 +395,8 @@ function TablesPage() {
             </p>
           </div>
 
-          <div className="relative rounded-[2rem] border border-[#eadde2] bg-gradient-to-br from-[#fffafa] via-[#fff6f8] to-[#f8eef2] p-6 lg:p-8 min-h-[740px]">
-            <div className="absolute inset-8 rounded-[1.5rem] border border-[#eadde2]/70 pointer-events-none" />
+          <div className="relative rounded-[2rem] border border-[#eadde2] bg-gradient-to-br from-[#fffafa] via-[#fff6f8] to-[#f8eef2] wos-table-map">
+            <div className="absolute inset-4 sm:inset-8 rounded-[1.5rem] border border-[#eadde2]/70 pointer-events-none hidden sm:block" />
 
             <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
               {regularTables.map((table) => renderTable(table))}
@@ -413,7 +413,7 @@ function TablesPage() {
         <aside
           onDragOver={isMobile ? undefined : (event) => event.preventDefault()}
           onDrop={isMobile ? undefined : handleDropOnUnseated}
-          className="wos-card p-6 sticky top-28"
+          className="wos-card p-6 wos-sticky-panel"
         >
           <div>
             <p className="text-sm text-[#8d7380]">{t("tables.notSeatedYet")}</p>

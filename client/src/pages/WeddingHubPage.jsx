@@ -20,21 +20,21 @@ function ProgressRing({ value, label, sublabel }) {
   const safeValue = Math.min(100, Math.max(0, value || 0));
 
   return (
-    <div className="rounded-[2rem] bg-[#fff8fa] border border-[#eadde2] p-5 flex items-center gap-4">
+    <div className="rounded-[2rem] bg-[#fff8fa] border border-[#eadde2] p-5 flex items-center gap-4 min-w-0">
       <div
-        className="h-24 w-24 rounded-full grid place-items-center shrink-0"
+        className="wos-progress-ring-sm rounded-full grid place-items-center shrink-0"
         style={{
           background: `conic-gradient(#660033 ${
             safeValue * 3.6
           }deg, #f3dfe6 0deg)`,
         }}
       >
-        <div className="h-18 w-18 rounded-full bg-white grid place-items-center">
-          <span className="text-xl font-bold text-[#660033]">{safeValue}%</span>
+        <div className="wos-progress-ring-sm-inner rounded-full bg-white grid place-items-center">
+          <span className="text-base sm:text-xl font-bold text-[#660033]">{safeValue}%</span>
         </div>
       </div>
 
-      <div>
+      <div className="min-w-0">
         <p className="text-sm text-[#8d7380]">{label}</p>
         <p className="text-lg font-serif wos-text-heading mt-1">{sublabel}</p>
       </div>
@@ -223,7 +223,7 @@ function WeddingHubPage() {
 
   return (
     <div className="space-y-8">
-      <section className="relative overflow-hidden rounded-[2.75rem] bg-gradient-to-br from-[#fff0f3] via-[#fff8fa] to-[#f3edf8] border border-[#eadde2] p-8 lg:p-12">
+      <section className="relative overflow-hidden rounded-[2.75rem] bg-gradient-to-br from-[#fff0f3] via-[#fff8fa] to-[#f3edf8] border border-[#eadde2] wos-page-hero">
         <div className="absolute -right-28 -top-28 h-80 w-80 rounded-full bg-white/50" />
         <div className="absolute right-28 -bottom-32 h-96 w-96 rounded-full bg-[#f2c8d4]/35" />
         <div className="absolute left-[-120px] bottom-[-120px] h-72 w-72 rounded-full bg-[#f8e3ea]/60" />
@@ -234,7 +234,7 @@ function WeddingHubPage() {
               {t("weddingHub.eyebrow")}
             </p>
 
-            <h1 className="wos-text-heading text-5xl lg:text-7xl font-semibold leading-[1.02] tracking-tight">
+            <h1 className="wos-text-heading wos-page-title font-semibold">
               {t("weddingHub.title")}
             </h1>
 
@@ -249,16 +249,16 @@ function WeddingHubPage() {
             </p>
 
             <div
-              className="mx-auto mt-5 h-44 w-44 rounded-full grid place-items-center"
+              className="mx-auto mt-5 wos-progress-ring-outer rounded-full grid place-items-center"
               style={{
                 background: `conic-gradient(#660033 ${
                   overallProgress * 3.6
                 }deg, #f3dfe6 0deg)`,
               }}
             >
-              <div className="h-32 w-32 rounded-full bg-white grid place-items-center text-center">
+              <div className="wos-progress-ring-inner rounded-full bg-white grid place-items-center text-center">
                 <div>
-                  <p className="text-4xl font-bold text-[#660033]">
+                  <p className="text-2xl sm:text-4xl font-bold text-[#660033]">
                     {overallProgress}%
                   </p>
                   <p className="text-xs text-[#8d7380] mt-1">
@@ -275,13 +275,13 @@ function WeddingHubPage() {
         </div>
       </section>
 
-      <section className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <section className="grid wos-countdown-grid gap-4">
         {countdownItems.map((item) => (
           <div
             key={item.label}
             className="rounded-[2rem] bg-[#fff8fa] border border-[#eadde2] p-5 text-center shadow-[0_12px_35px_rgba(80,40,55,0.05)]"
           >
-            <p className="text-5xl lg:text-6xl font-semibold text-[#660033] tracking-tight">
+            <p className="wos-countdown-value font-semibold text-[#660033] tracking-tight">
               {String(item.value).padStart(2, "0")}
             </p>
 
@@ -297,7 +297,7 @@ function WeddingHubPage() {
           <div className="relative z-10">
             <p className="text-sm text-white/60">{t("weddingHub.loveStory")}</p>
 
-            <h2 className="text-5xl font-serif mt-3">{daysTogether}</h2>
+            <h2 className="wos-countdown-value font-serif mt-3">{daysTogether}</h2>
 
             <p className="text-white/70 mt-2">{t("weddingHub.daysTogether")}</p>
 
@@ -322,7 +322,7 @@ function WeddingHubPage() {
             <div>
               <p className="text-sm text-[#8d7380]">{t("weddingHub.untilIDo")}</p>
 
-              <h2 className="text-4xl lg:text-5xl font-serif wos-text-heading mt-3">
+              <h2 className="wos-section-title font-serif wos-text-heading mt-3">
                 {t("weddingHub.weddingDate")}
               </h2>
             </div>
@@ -411,16 +411,16 @@ function WeddingHubPage() {
           </div>
 
           <div
-            className="mx-auto h-56 w-56 rounded-full grid place-items-center"
+            className="mx-auto wos-progress-ring-outer rounded-full grid place-items-center"
             style={{
               background: `conic-gradient(#660033 ${
                 timelineProgress * 3.6
               }deg, #f3dfe6 0deg)`,
             }}
           >
-            <div className="h-40 w-40 rounded-full bg-white grid place-items-center text-center border border-[#eadde2]">
+            <div className="wos-progress-ring-inner rounded-full bg-white grid place-items-center text-center border border-[#eadde2]">
               <div>
-                <p className="text-5xl font-bold text-[#660033]">
+                <p className="text-2xl sm:text-5xl font-bold text-[#660033]">
                   {timelineProgress}%
                 </p>
                 <p className="text-xs text-[#8d7380] mt-1">

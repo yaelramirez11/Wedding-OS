@@ -308,7 +308,7 @@ function HoneymoonPage() {
         </div>
       )}
 
-      <section className="relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-[#f6dde4] via-[#fff8fa] to-[#f3edf8] border border-[#eadde2] p-8 lg:p-12">
+      <section className="relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-[#f6dde4] via-[#fff8fa] to-[#f3edf8] border border-[#eadde2] wos-page-hero">
         <div className="absolute -right-20 -top-24 h-72 w-72 rounded-full bg-white/40" />
         <div className="absolute right-20 -bottom-28 h-80 w-80 rounded-full bg-[#f2c8d4]/35" />
 
@@ -317,7 +317,7 @@ function HoneymoonPage() {
             {t("honeymoon.eyebrow")}
           </p>
 
-          <h1 className="wos-text-heading text-5xl lg:text-6xl font-semibold leading-[1.05] tracking-tight">
+          <h1 className="wos-text-heading wos-page-title font-semibold">
             {t("honeymoon.title")}
           </h1>
 
@@ -413,7 +413,7 @@ function HoneymoonPage() {
       <section className="grid grid-cols-1 xl:grid-cols-[420px_1fr] gap-6 items-start">
         <form
           onSubmit={handleSubmit}
-          className="wos-card p-6 xl:sticky xl:top-28 overflow-hidden relative"
+          className="wos-card p-6 wos-sticky-panel overflow-hidden relative"
         >
           <div className="absolute -bottom-12 -right-12 h-44 w-44 rounded-full bg-[#fff0f3]" />
 
@@ -682,7 +682,7 @@ function HoneymoonPage() {
                       )}
                     </div>
 
-                    <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3">
+                    <div className="wos-action-row">
                       <span
                         className={`w-fit text-sm font-medium px-3 py-1 rounded-full ${currentStatus.className}`}
                       >

@@ -40,7 +40,7 @@ function Sidebar() {
         </div>
       </div>
 
-      <nav className="flex lg:flex-col gap-2 overflow-x-auto lg:overflow-visible pb-1 lg:pb-0">
+      <nav className="flex lg:flex-col gap-2 overflow-x-auto lg:overflow-visible pb-1 lg:pb-0 wos-sidebar-nav max-w-full">
         {navItems.map((item) => (
           <NavLink
             key={item.path}

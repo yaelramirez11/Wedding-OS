@@ -137,7 +137,7 @@ function GuestCard({
           </div>
         </div>
 
-        <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-3">
+        <div className="wos-action-row">
           <span
             className={`w-fit text-sm font-medium px-3 py-1 rounded-full transition ${currentStatus.className}`}
           >

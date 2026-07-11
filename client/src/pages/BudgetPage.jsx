@@ -397,7 +397,7 @@ function BudgetPage() {
       <section className="grid grid-cols-1 xl:grid-cols-[420px_1fr] gap-6 items-start">
         <form
           onSubmit={handleSubmit}
-          className="wos-card p-6 rounded-3xl shadow-sm border border-black/5 xl:sticky xl:top-28"
+          className="wos-card p-6 rounded-3xl shadow-sm border border-black/5 wos-sticky-panel"
         >
           <h2 className="text-xl font-semibold wos-text-heading">
             {t("budget.addExpense")}
@@ -683,7 +683,7 @@ function BudgetPage() {
                       )}
                     </div>
 
-                    <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3">
+                    <div className="wos-action-row">
                       <span
                         className={`w-fit text-sm font-medium px-3 py-1 rounded-full ${currentStatus.className}`}
                       >

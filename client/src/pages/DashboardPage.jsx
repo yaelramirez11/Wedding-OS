@@ -146,7 +146,7 @@ function DashboardPage() {
 
   return (
     <div className="space-y-8">
-      <section className="relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-[#f6dde4] via-[#fdf6f7] to-[#fdeff2] border border-[#ead6dc] p-8 lg:p-12">
+      <section className="relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-[#f6dde4] via-[#fdf6f7] to-[#fdeff2] border border-[#ead6dc] wos-page-hero">
         <div className="absolute right-[-120px] top-[-100px] h-[260px] w-[260px] rounded-full bg-[#f2c8d4]/40" />
         <div className="absolute right-[60px] bottom-[-120px] h-[320px] w-[320px] rounded-full bg-[#f5dfe5]/60" />
 
@@ -154,7 +154,7 @@ function DashboardPage() {
           <p className="text-[#7f5f69] text-sm font-medium mb-6">
             {t("dashboard.heroEyebrow")}
           </p>
-          <h1 className="text-[#38131f] text-5xl lg:text-6xl font-semibold leading-[1.05] tracking-tight">
+          <h1 className="text-[#38131f] wos-page-title font-semibold">
             {t("dashboard.heroTitle")}
           </h1>
           <p className="text-[#6e6168] text-lg mt-7 leading-relaxed max-w-2xl">
@@ -258,8 +258,8 @@ function DashboardPage() {
                 </div>
               )}
 
-              <div className="flex items-center justify-between gap-2 mb-4 relative z-10">
-                <div className="flex items-center gap-3 min-w-0">
+              <div className="wos-card-header-row mb-4 relative z-10">
+                <div className="flex items-center gap-3 min-w-0 flex-1">
                   <div
                     className={`h-10 w-10 rounded-xl ${card.accent} flex items-center justify-center text-lg shrink-0`}
                   >
@@ -271,7 +271,7 @@ function DashboardPage() {
                 </div>
 
                 <div
-                  className="relative shrink-0 ml-auto mr-4"
+                  className="relative shrink-0 w-full sm:w-auto sm:ml-auto sm:mr-4"
                   onClick={(e) => e.stopPropagation()}
                 >
                   <select

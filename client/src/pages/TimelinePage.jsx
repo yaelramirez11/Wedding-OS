@@ -351,7 +351,7 @@ function TimelinePage() {
         </div>
       )}
 
-      <section className="relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-[#fff0f3] via-[#fff8fa] to-[#f3edf8] border border-[#eadde2] p-8 lg:p-12">
+      <section className="relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-[#fff0f3] via-[#fff8fa] to-[#f3edf8] border border-[#eadde2] wos-page-hero">
         <div className="absolute -right-24 -top-24 h-72 w-72 rounded-full bg-white/50" />
         <div className="absolute right-24 -bottom-28 h-80 w-80 rounded-full bg-[#f2c8d4]/35" />
 
@@ -360,7 +360,7 @@ function TimelinePage() {
             {t("timeline.eyebrow")}
           </p>
 
-          <h1 className="wos-text-heading text-5xl lg:text-6xl font-semibold leading-[1.05] tracking-tight">
+          <h1 className="wos-text-heading wos-page-title font-semibold">
             {t("timeline.title")}
           </h1>
 
@@ -378,12 +378,12 @@ function TimelinePage() {
 
         <div className="wos-card p-6">
           <p className="text-sm text-[#8d7380]">{t("timeline.completed")}</p>
-          <h2 className="text-4xl font-bold mt-2">{completedItems}</h2>
+          <h2 className="wos-stat-value font-bold mt-2">{completedItems}</h2>
         </div>
 
         <div className="wos-card p-6">
           <p className="text-sm text-[#8d7380]">{t("timeline.progress")}</p>
-          <h2 className="text-4xl font-bold mt-2">{progress}%</h2>
+          <h2 className="wos-stat-value font-bold mt-2">{progress}%</h2>
         </div>
 
         <div className="wos-card p-6">
@@ -468,7 +468,7 @@ function TimelinePage() {
       <section className="grid grid-cols-1 xl:grid-cols-[420px_1fr] gap-6 items-start">
         <form
           onSubmit={handleSubmit}
-          className="wos-card p-6 xl:sticky xl:top-28 overflow-hidden relative"
+          className="wos-card p-6 wos-sticky-panel overflow-hidden relative"
         >
           <div className="absolute -bottom-12 -right-12 h-44 w-44 rounded-full bg-[#fff0f3]" />
 
@@ -562,7 +562,7 @@ function TimelinePage() {
         </form>
 
         <div className="relative">
-          <div className="absolute left-7 top-6 bottom-6 w-[3px] rounded-full bg-gradient-to-b from-[#660033] via-[#f2c8d4] to-[#660033]/20" />
+          <div className="absolute left-7 top-6 bottom-6 w-[3px] rounded-full bg-gradient-to-b from-[#660033] via-[#f2c8d4] to-[#660033]/20 wos-timeline-rail" />
 
           <div className="space-y-5">
             {sortedItems.length === 0 ? (
@@ -583,9 +583,9 @@ function TimelinePage() {
                 const isEditing = editingId === item.id;
 
                 return (
-                  <article key={item.id} className="relative pl-20">
+                  <article key={item.id} className="relative wos-timeline-item">
                     <div
-                      className={`absolute left-0 top-6 h-14 w-14 rounded-full border-4 shadow-[0_10px_30px_rgba(80,40,55,0.12)] flex items-center justify-center text-xl z-10 ${
+                      className={`absolute left-0 top-6 rounded-full border-4 shadow-[0_10px_30px_rgba(80,40,55,0.12)] flex items-center justify-center z-10 wos-timeline-node ${
                         item.isCurrent
                           ? "bg-[#660033] text-white border-[#ffd6e0] animate-pulse"
                           : item.status === "completed"
@@ -790,7 +790,7 @@ function TimelinePage() {
                               </div>
 
                               <div>
-                                <h2 className="text-xl font-semibold text-[#38131f]">
+                                <h2 className="text-lg sm:text-xl font-semibold text-[#38131f] wos-break-anywhere">
                                   {item.title}
                                 </h2>
 
@@ -810,7 +810,7 @@ function TimelinePage() {
                         </div>
 
                         {!isEditing && (
-                          <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3 pt-4 border-t border-[#f0e2e7]">
+                          <div className="wos-action-row pt-4 border-t border-[#f0e2e7]">
                             <select
                               value={item.status}
                               onChange={(e) =>
