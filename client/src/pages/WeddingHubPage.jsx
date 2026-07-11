@@ -1,36 +1,20 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { fetchTimelineItems } from "../services/timelineService";
 import { fetchGuests } from "../services/guestService";
 import { fetchBudgetItems } from "../services/budgetService";
 import { fetchHoneymoonItems } from "../services/honeymoonService";
 import { fetchTables } from "../services/tableService";
+import { useTranslation } from "../context/PreferencesContext.jsx";
+import {
+  formatLocaleDate,
+  formatMoney,
+  getWeddingHubBlessings,
+  sortTimelineItems,
+} from "../i18n/helpers.js";
 
 const WEDDING_DATE = new Date("2026-10-10T14:00:00");
 const RELATIONSHIP_START_DATE = new Date("2024-08-08T00:00:00");
-
-const blessings = [
-  {
-    title: "Love is patient, love is kind.",
-    text: "Today, let every wedding detail be planned with patience, joy and tenderness.",
-    source: "1 Corinthians 13:4",
-  },
-  {
-    title: "What God has joined together...",
-    text: "A reminder that this is not just an event, but the beginning of a covenant.",
-    source: "Matthew 19:6",
-  },
-  {
-    title: "Two are better than one.",
-    text: "You are building this together, one small step at a time.",
-    source: "Ecclesiastes 4:9",
-  },
-  {
-    title: "Above all, love.",
-    text: "May love be present in every decision, every conversation and every plan.",
-    source: "Colossians 3:14",
-  },
-];
 
 function ProgressRing({ value, label, sublabel }) {
   const safeValue = Math.min(100, Math.max(0, value || 0));
@@ -52,13 +36,16 @@ function ProgressRing({ value, label, sublabel }) {
 
       <div>
         <p className="text-sm text-[#8d7380]">{label}</p>
-        <p className="text-lg font-serif text-[#38131f] mt-1">{sublabel}</p>
+        <p className="text-lg font-serif wos-text-heading mt-1">{sublabel}</p>
       </div>
     </div>
   );
 }
 
 function WeddingHubPage() {
+  const { t, language } = useTranslation();
+  const blessings = useMemo(() => getWeddingHubBlessings(t), [t]);
+
   const [timeLeft, setTimeLeft] = useState({
     days: 0,
     hours: 0,
@@ -179,21 +166,17 @@ function WeddingHubPage() {
   );
 
   const countdownItems = [
-    { label: "Days", value: timeLeft.days },
-    { label: "Hours", value: timeLeft.hours },
-    { label: "Minutes", value: timeLeft.minutes },
-    { label: "Seconds", value: timeLeft.seconds },
+    { label: t("weddingHub.days"), value: timeLeft.days },
+    { label: t("weddingHub.hours"), value: timeLeft.hours },
+    { label: t("weddingHub.minutes"), value: timeLeft.minutes },
+    { label: t("weddingHub.seconds"), value: timeLeft.seconds },
   ];
 
   const dailyBlessing = blessings[new Date().getDate() % blessings.length];
 
-  const upcomingTimelineItems = [...timelineItems]
-    .filter((item) => item.status !== "completed")
-    .sort((a, b) => {
-      if (a.date && b.date) return new Date(a.date) - new Date(b.date);
-
-      return (a.order || 0) - (b.order || 0);
-    });
+  const upcomingTimelineItems = sortTimelineItems(
+    timelineItems.filter((item) => item.status !== "completed"),
+  );
 
   const nextTimelineItem = upcomingTimelineItems[0];
 
@@ -235,15 +218,8 @@ function WeddingHubPage() {
       5,
   );
 
-  const formatDate = (value) => {
-    if (!value) return "No date yet";
-
-    return new Date(value).toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
-  };
+  const formatDate = (value) =>
+    formatLocaleDate(value, language, t("honeymoon.noDateYet"));
 
   return (
     <div className="space-y-8">
@@ -255,21 +231,22 @@ function WeddingHubPage() {
         <div className="relative z-10 grid grid-cols-1 xl:grid-cols-[1fr_320px] gap-8 items-end">
           <div>
             <p className="text-[#8d7380] text-sm font-medium mb-5">
-              Our Wedding Hub ❤️
+              {t("weddingHub.eyebrow")}
             </p>
 
-            <h1 className="text-[#38131f] text-5xl lg:text-7xl font-semibold leading-[1.02] tracking-tight">
-              The countdown to forever has begun.
+            <h1 className="wos-text-heading text-5xl lg:text-7xl font-semibold leading-[1.02] tracking-tight">
+              {t("weddingHub.title")}
             </h1>
 
-            <p className="text-[#7f7079] text-lg mt-6 leading-relaxed max-w-2xl">
-              A cozy center for our countdown, progress, next steps and the
-              little reminders that keep this season beautiful.
+            <p className="wos-text-muted text-lg mt-6 leading-relaxed max-w-2xl">
+              {t("weddingHub.subtitle")}
             </p>
           </div>
 
           <div className="rounded-[2.25rem] bg-white/70 border border-white p-6 shadow-[0_20px_60px_rgba(80,40,55,0.08)]">
-            <p className="text-sm text-[#8d7380]">Overall wedding progress</p>
+            <p className="text-sm text-[#8d7380]">
+              {t("weddingHub.overallProgress")}
+            </p>
 
             <div
               className="mx-auto mt-5 h-44 w-44 rounded-full grid place-items-center"
@@ -284,13 +261,15 @@ function WeddingHubPage() {
                   <p className="text-4xl font-bold text-[#660033]">
                     {overallProgress}%
                   </p>
-                  <p className="text-xs text-[#8d7380] mt-1">complete</p>
+                  <p className="text-xs text-[#8d7380] mt-1">
+                    {t("weddingHub.complete")}
+                  </p>
                 </div>
               </div>
             </div>
 
             <p className="text-xs text-[#8d7380] mt-5 text-center">
-              Based on guests, tables, budget, honeymoon and timeline.
+              {t("weddingHub.progressBasis")}
             </p>
           </div>
         </div>
@@ -316,14 +295,16 @@ function WeddingHubPage() {
           <div className="absolute -right-20 -bottom-20 h-56 w-56 rounded-full bg-white/10" />
 
           <div className="relative z-10">
-            <p className="text-sm text-white/60">Our love story</p>
+            <p className="text-sm text-white/60">{t("weddingHub.loveStory")}</p>
 
             <h2 className="text-5xl font-serif mt-3">{daysTogether}</h2>
 
-            <p className="text-white/70 mt-2">days together and counting.</p>
+            <p className="text-white/70 mt-2">{t("weddingHub.daysTogether")}</p>
 
             <div className="mt-8 rounded-[2rem] bg-white/10 border border-white/10 p-5">
-              <p className="text-sm font-semibold">Today’s blessing</p>
+              <p className="text-sm font-semibold">
+                {t("weddingHub.todaysBlessing")}
+              </p>
 
               <h3 className="text-xl font-serif mt-3">{dailyBlessing.title}</h3>
 
@@ -331,9 +312,7 @@ function WeddingHubPage() {
                 {dailyBlessing.text}
               </p>
 
-              <p className="text-xs text-white/45 mt-3">
-                {dailyBlessing.source}
-              </p>
+              <p className="text-xs text-white/45 mt-3">{dailyBlessing.source}</p>
             </div>
           </div>
         </div>
@@ -341,41 +320,41 @@ function WeddingHubPage() {
         <div className="wos-card rounded-[2.5rem] p-6 lg:p-8 border border-[#eadde2]">
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
             <div>
-              <p className="text-sm text-[#8d7380]">Until we say “I do”</p>
+              <p className="text-sm text-[#8d7380]">{t("weddingHub.untilIDo")}</p>
 
-              <h2 className="text-4xl lg:text-5xl font-serif text-[#38131f] mt-3">
-                October 10, 2026 · 2:00 PM
+              <h2 className="text-4xl lg:text-5xl font-serif wos-text-heading mt-3">
+                {t("weddingHub.weddingDate")}
               </h2>
             </div>
 
             <span className="rounded-full bg-[#fff0f3] text-[#660033] px-4 py-2 text-sm font-semibold">
-              {timeLeft.days} days left
+              {timeLeft.days} {t("weddingHub.daysLeft")}
             </span>
           </div>
 
           <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4">
             <ProgressRing
               value={guestProgress}
-              label="Guests confirmed"
-              sublabel={`${stats.guestsConfirmed} of ${stats.totalGuests}`}
+              label={t("weddingHub.guestsConfirmed")}
+              sublabel={`${stats.guestsConfirmed} ${t("weddingHub.of")} ${stats.totalGuests}`}
             />
 
             <ProgressRing
               value={tableProgress}
-              label="Guests seated"
-              sublabel={`${stats.seatedGuests} of ${stats.totalGuests}`}
+              label={t("weddingHub.guestsSeated")}
+              sublabel={`${stats.seatedGuests} ${t("weddingHub.of")} ${stats.totalGuests}`}
             />
 
             <ProgressRing
               value={budgetProgress}
-              label="Budget paid"
-              sublabel={`$${stats.budgetPaid.toLocaleString()} paid`}
+              label={t("weddingHub.budgetPaid")}
+              sublabel={`${formatMoney(stats.budgetPaid, t, language)} ${t("weddingHub.paidAmount")}`}
             />
 
             <ProgressRing
               value={honeymoonProgress}
-              label="Honeymoon paid"
-              sublabel={`$${stats.honeymoonPaid.toLocaleString()} paid`}
+              label={t("weddingHub.honeymoonPaid")}
+              sublabel={`${formatMoney(stats.honeymoonPaid, t, language)} ${t("weddingHub.paidAmount")}`}
             />
           </div>
         </div>
@@ -384,39 +363,41 @@ function WeddingHubPage() {
       <section className="wos-card rounded-[2.5rem] p-6 lg:p-8 border border-[#eadde2]">
         <div className="grid grid-cols-1 xl:grid-cols-[1fr_280px] gap-6 items-center">
           <div>
-            <p className="text-sm text-[#8d7380]">Timeline preview</p>
+            <p className="text-sm text-[#8d7380]">
+              {t("weddingHub.timelinePreview")}
+            </p>
 
-            <h2 className="text-3xl font-serif text-[#38131f] mt-2">
-              {nextTimelineItem?.title || "No upcoming timeline steps"}
+            <h2 className="text-3xl font-serif wos-text-heading mt-2">
+              {nextTimelineItem?.title || t("weddingHub.noUpcomingSteps")}
             </h2>
 
             {nextTimelineItem ? (
-              <p className="text-sm text-[#7f7079] mt-3">
+              <p className="text-sm wos-text-muted mt-3">
                 {nextTimelineItem.category} ·{" "}
                 {formatDate(nextTimelineItem.date)}
                 {nextTimelineItem.time ? ` · ${nextTimelineItem.time}` : ""}
               </p>
             ) : (
-              <p className="text-sm text-[#7f7079] mt-3">
-                Everything in Timeline looks complete for now.
+              <p className="text-sm wos-text-muted mt-3">
+                {t("weddingHub.timelineComplete")}
               </p>
             )}
 
             <div className="mt-6 rounded-[2rem] bg-[#fff8fa] border border-[#eadde2] p-5">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div>
-                  <p className="text-sm font-semibold text-[#38131f]">
-                    Timeline progress
+                  <p className="text-sm font-semibold wos-text-heading">
+                    {t("weddingHub.timelineProgress")}
                   </p>
 
                   <p className="text-sm text-[#8d7380] mt-1">
-                    {completedTimelineItems} of {timelineItems.length} timeline
-                    steps completed.
+                    {completedTimelineItems} {t("weddingHub.of")}{" "}
+                    {timelineItems.length} {t("weddingHub.stepsCompleted")}
                   </p>
                 </div>
 
                 <span className="rounded-full bg-[#fff0f3] text-[#660033] px-4 py-2 text-sm font-semibold">
-                  {timelineProgress}% done
+                  {timelineProgress}% {t("weddingHub.done")}
                 </span>
               </div>
 
@@ -442,7 +423,9 @@ function WeddingHubPage() {
                 <p className="text-5xl font-bold text-[#660033]">
                   {timelineProgress}%
                 </p>
-                <p className="text-xs text-[#8d7380] mt-1">timeline</p>
+                <p className="text-xs text-[#8d7380] mt-1">
+                  {t("weddingHub.timelineLabel")}
+                </p>
               </div>
             </div>
           </div>

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import {
   fetchBudgetItems,
@@ -6,60 +6,24 @@ import {
   updateBudgetItem,
   deleteBudgetItem,
 } from "../services/budgetService";
+import { useTranslation } from "../context/PreferencesContext.jsx";
+import {
+  formatMoney,
+  getBudgetCategories,
+  getBudgetSubcategories,
+  getBudgetStatusConfig,
+  findBudgetCategoryLabel,
+  findBudgetSubcategoryLabel,
+} from "../i18n/helpers.js";
 
 import DeleteBudgetModal from "../components/budget/DeleteBudgetModal.jsx";
 
-const categories = [
-  { value: "venue", label: "Venue" },
-  { value: "photography", label: "Photography" },
-  { value: "dress", label: "Dress" },
-  { value: "honeymoon", label: "Honeymoon" },
-  { value: "decoration", label: "Decoration" },
-  { value: "chorus", label: "Chorus" },
-  { value: "getReadyBride", label: "Get Ready Bride" },
-  { value: "cake", label: "Cake" },
-  { value: "snacks", label: "Snacks" },
-  { value: "sweets", label: "Sweets" },
-  { value: "waiterTips", label: "Waiter Tips" },
-  { value: "tableNumbers", label: "Table Numbers" },
-  { value: "alcohol", label: "Alcohol" },
-  { value: "favors", label: "Favors / Candles" },
-  { value: "centerpieces", label: "Centerpieces" },
-  { value: "florals", label: "Florals" },
-  { value: "sweetheartTable", label: "Sweetheart Table" },
-  { value: "other", label: "Other" },
-];
-
-const subcategories = {
-  honeymoon: ["Hotel", "Transportation", "Extras"],
-  getReadyBride: [
-    "Makeup and Hair",
-    "Veil",
-    "Jewelry",
-    "Shoes",
-    "Hair Accessories",
-    "Robe",
-    "Bouquet",
-    "Emergency Kit",
-  ],
-};
-
-const statusConfig = {
-  pending: {
-    label: "Pending",
-    className: "bg-yellow-100 text-yellow-700",
-  },
-  advancePayment: {
-    label: "Advance Payment",
-    className: "bg-blue-100 text-blue-700",
-  },
-  paid: {
-    label: "Paid",
-    className: "bg-green-100 text-green-700",
-  },
-};
-
 function BudgetPage() {
+  const { t, language } = useTranslation();
+  const categories = useMemo(() => getBudgetCategories(t), [t]);
+  const subcategories = useMemo(() => getBudgetSubcategories(t), [t]);
+  const statusConfig = useMemo(() => getBudgetStatusConfig(t), [t]);
+
   const [items, setItems] = useState([]);
   const [title, setTitle] = useState("");
   const [cost, setCost] = useState("");
@@ -127,17 +91,13 @@ function BudgetPage() {
     }, 3000);
   };
 
-  const formatMoney = (value) => {
-    return `$${Number(value || 0).toLocaleString()} MXN`;
-  };
-
   const loadBudget = async () => {
     try {
       const data = await fetchBudgetItems();
       setItems(data);
     } catch (error) {
       console.error(error);
-      showError("Could not load budget.");
+      showError(t("budget.loadError"));
     }
   };
 
@@ -200,10 +160,10 @@ function BudgetPage() {
       setStatus("pending");
       setNotes("");
 
-      showSuccess("Expense added successfully 🐷");
+      showSuccess(t("budget.addSuccess"));
     } catch (error) {
       console.error(error);
-      showError("Could not add expense.");
+      showError(t("budget.addError"));
     } finally {
       setLoading(false);
     }
@@ -225,10 +185,10 @@ function BudgetPage() {
         ),
       );
 
-      showSuccess("Expense status updated");
+      showSuccess(t("budget.statusUpdateSuccess"));
     } catch (error) {
       console.error(error);
-      showError("Could not update expense.");
+      showError(t("budget.updateError"));
     }
   };
 
@@ -274,10 +234,10 @@ function BudgetPage() {
       );
 
       cancelEdit();
-      showSuccess("Expense updated");
+      showSuccess(t("budget.updateSuccess"));
     } catch (error) {
       console.error(error);
-      showError("Could not update expense.");
+      showError(t("budget.updateError"));
     }
   };
 
@@ -296,10 +256,10 @@ function BudgetPage() {
         prev.filter((current) => current.id !== itemToDelete.id),
       );
 
-      showSuccess("Expense deleted");
+      showSuccess(t("budget.deleteSuccess"));
     } catch (error) {
       console.error(error);
-      showError("Could not delete expense.");
+      showError(t("budget.deleteError"));
     } finally {
       setItemToDelete(null);
       setIsDeleteModalOpen(false);
@@ -339,76 +299,81 @@ function BudgetPage() {
   return (
     <div className="space-y-8">
       {successMessage && (
-        <div className="rounded-2xl bg-green-100 text-green-700 px-5 py-4 text-sm font-medium">
+        <div className="rounded-2xl px-5 py-4 text-sm font-medium wos-alert-success">
           {successMessage}
         </div>
       )}
       {errorMessage && (
-        <div className="rounded-2xl bg-red-100 text-red-700 px-5 py-4 text-sm font-medium">
+        <div className="rounded-2xl px-5 py-4 text-sm font-medium wos-alert-error">
           {errorMessage}
         </div>
       )}
       <section>
-        <p className="text-sm font-medium text-gray-500">Our Wedding budget</p>
+        <p className="text-sm font-medium wos-text-muted">{t("budget.eyebrow")}</p>
 
-        <h1 className="text-4xl font-bold tracking-tight mt-1">
-          Our budget 🐷
+        <h1 className="text-4xl font-bold tracking-tight mt-1 wos-text-heading">
+          {t("budget.title")}
         </h1>
 
-        <p className="text-gray-500 mt-2 max-w-2xl">
-          Let's keep track of our wedding and honeymoon costs, advance payments
-          and completed payments in one calm place.
-        </p>
+        <p className="wos-text-muted mt-2 max-w-2xl">{t("budget.subtitle")}</p>
       </section>
       <section className="grid grid-cols-1 md:grid-cols-4 gap-5">
         <div className="wos-card rounded-3xl p-6 border border-black/5 shadow-sm">
-          <p className="text-sm text-gray-500">Total cost</p>
-          <h2 className="text-2xl font-bold mt-2">{formatMoney(total)}</h2>
-        </div>
-
-        <div className="wos-card rounded-3xl p-6 border border-black/5 shadow-sm">
-          <p className="text-sm text-gray-500">Paid</p>
-          <h2 className="text-2xl font-bold mt-2">{formatMoney(paid)}</h2>
-        </div>
-
-        <div className="wos-card rounded-3xl p-6 border border-black/5 shadow-sm">
-          <p className="text-sm text-gray-500">Advance payments</p>
-          <h2 className="text-2xl font-bold mt-2">
-            {formatMoney(advancePayments)}
+          <p className="text-sm wos-text-muted">{t("budget.totalCost")}</p>
+          <h2 className="text-2xl font-bold mt-2 wos-text-heading">
+            {formatMoney(total, t, language)}
           </h2>
         </div>
 
         <div className="wos-card rounded-3xl p-6 border border-black/5 shadow-sm">
-          <p className="text-sm text-gray-500">Pending</p>
-          <h2 className="text-2xl font-bold mt-2">{formatMoney(pending)}</h2>
+          <p className="text-sm wos-text-muted">{t("budget.paid")}</p>
+          <h2 className="text-2xl font-bold mt-2 wos-text-heading">
+            {formatMoney(paid, t, language)}
+          </h2>
+        </div>
+
+        <div className="wos-card rounded-3xl p-6 border border-black/5 shadow-sm">
+          <p className="text-sm wos-text-muted">{t("budget.advancePayments")}</p>
+          <h2 className="text-2xl font-bold mt-2 wos-text-heading">
+            {formatMoney(advancePayments, t, language)}
+          </h2>
+        </div>
+
+        <div className="wos-card rounded-3xl p-6 border border-black/5 shadow-sm">
+          <p className="text-sm wos-text-muted">{t("budget.pending")}</p>
+          <h2 className="text-2xl font-bold mt-2 wos-text-heading">
+            {formatMoney(pending, t, language)}
+          </h2>
         </div>
       </section>
       <section className="wos-card rounded-3xl p-4 border border-black/5 shadow-sm flex flex-col gap-4">
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search expenses..."
-          className="w-full border border-gray-200 rounded-2xl px-4 py-3 outline-none focus:border-black transition"
+          placeholder={t("budget.searchPlaceholder")}
+          className="wos-input"
         />
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="border border-gray-200 rounded-2xl px-4 py-3 outline-none focus:border-black transition wos-card"
+            className="wos-input"
           >
-            <option value="all">All statuses</option>
-            <option value="pending">Pending</option>
-            <option value="advancePayment">Advance Payment</option>
-            <option value="paid">Paid</option>
+            <option value="all">{t("budget.allStatuses")}</option>
+            <option value="pending">{statusConfig.pending.label}</option>
+            <option value="advancePayment">
+              {statusConfig.advancePayment.label}
+            </option>
+            <option value="paid">{statusConfig.paid.label}</option>
           </select>
 
           <select
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value)}
-            className="border border-gray-200 rounded-2xl px-4 py-3 outline-none focus:border-black transition wos-card"
+            className="wos-input"
           >
-            <option value="all">All categories</option>
+            <option value="all">{t("budget.allCategories")}</option>
 
             {categories.map((item) => (
               <option key={item.value} value={item.value}>
@@ -420,32 +385,34 @@ function BudgetPage() {
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
-            className="border border-gray-200 rounded-2xl px-4 py-3 outline-none focus:border-black transition wos-card"
+            className="wos-input"
           >
-            <option value="newest">Newest first</option>
-            <option value="oldest">Oldest first</option>
-            <option value="highest">Highest cost</option>
-            <option value="lowest">Lowest cost</option>
+            <option value="newest">{t("sort.newest")}</option>
+            <option value="oldest">{t("sort.oldest")}</option>
+            <option value="highest">{t("sort.highest")}</option>
+            <option value="lowest">{t("sort.lowest")}</option>
           </select>
         </div>
-      </section>{" "}
+      </section>
       <section className="grid grid-cols-1 xl:grid-cols-[420px_1fr] gap-6 items-start">
         <form
           onSubmit={handleSubmit}
           className="wos-card p-6 rounded-3xl shadow-sm border border-black/5 xl:sticky xl:top-28"
         >
-          <h2 className="text-xl font-semibold">Add expense</h2>
+          <h2 className="text-xl font-semibold wos-text-heading">
+            {t("budget.addExpense")}
+          </h2>
 
-          <p className="text-sm text-gray-500 mt-1 mb-5">
-            Add anything we need to pay for.
+          <p className="text-sm wos-text-muted mt-1 mb-5">
+            {t("budget.addExpenseHint")}
           </p>
 
           <div className="space-y-4">
             <input
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="Expense title"
-              className="w-full border border-gray-200 rounded-2xl px-4 py-3 outline-none focus:border-black transition"
+              placeholder={t("budget.expenseTitle")}
+              className="wos-input"
             />
 
             <input
@@ -453,8 +420,8 @@ function BudgetPage() {
               onChange={(e) => setCost(e.target.value)}
               type="number"
               min="0"
-              placeholder="Cost"
-              className="w-full border border-gray-200 rounded-2xl px-4 py-3 outline-none focus:border-black transition"
+              placeholder={t("budget.cost")}
+              className="wos-input"
             />
 
             <input
@@ -462,14 +429,14 @@ function BudgetPage() {
               onChange={(e) => setAdvancePaid(e.target.value)}
               type="number"
               min="0"
-              placeholder="Advance paid"
-              className="w-full border border-gray-200 rounded-2xl px-4 py-3 outline-none focus:border-black transition"
+              placeholder={t("budget.advancePaid")}
+              className="wos-input"
             />
 
             <select
               value={category}
               onChange={(e) => handleCategoryChange(e.target.value)}
-              className="w-full border border-gray-200 rounded-2xl px-4 py-3 outline-none focus:border-black transition wos-card"
+              className="wos-input"
             >
               {categories.map((item) => (
                 <option key={item.value} value={item.value}>
@@ -482,13 +449,13 @@ function BudgetPage() {
               <select
                 value={subcategory}
                 onChange={(e) => setSubcategory(e.target.value)}
-                className="w-full border border-gray-200 rounded-2xl px-4 py-3 outline-none focus:border-black transition wos-card"
+                className="wos-input"
               >
-                <option value="">Choose subcategory</option>
+                <option value="">{t("budget.chooseSubcategory")}</option>
 
                 {currentSubcategories.map((item) => (
-                  <option key={item} value={item}>
-                    {item}
+                  <option key={item.value} value={item.value}>
+                    {item.label}
                   </option>
                 ))}
               </select>
@@ -497,39 +464,41 @@ function BudgetPage() {
             <select
               value={status}
               onChange={(e) => setStatus(e.target.value)}
-              className="w-full border border-gray-200 rounded-2xl px-4 py-3 outline-none focus:border-black transition wos-card"
+              className="wos-input"
             >
-              <option value="pending">Pending</option>
-              <option value="advancePayment">Advance Payment</option>
-              <option value="paid">Paid</option>
+              <option value="pending">{statusConfig.pending.label}</option>
+              <option value="advancePayment">
+                {statusConfig.advancePayment.label}
+              </option>
+              <option value="paid">{statusConfig.paid.label}</option>
             </select>
 
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="Notes, darling..."
+              placeholder={t("common.notesPlaceholder")}
               rows={4}
               maxLength={300}
-              className="w-full border border-gray-200 rounded-2xl px-4 py-3 outline-none focus:border-black transition resize-none"
+              className="wos-input resize-none"
             />
 
             <button
               disabled={loading || !title.trim() || Number(cost) <= 0}
-              className="w-full bg-black text-white px-6 py-3 rounded-2xl font-medium disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-800 transition"
+              className="w-full wos-button disabled:opacity-40 disabled:cursor-not-allowed"
             >
-              {loading ? "Adding..." : "Add Expense"}
+              {loading ? t("common.adding") : t("budget.addExpenseBtn")}
             </button>
           </div>
         </form>
 
         <div className="space-y-4">
           {filteredItems.length === 0 ? (
-            <div className="wos-card border border-dashed border-gray-300 rounded-3xl p-10 text-center">
-              <h2 className="text-xl font-semibold">No expenses yet</h2>
+            <div className="wos-card border border-dashed border-[#eadde2] rounded-3xl p-10 text-center">
+              <h2 className="text-xl font-semibold wos-text-heading">
+                {t("budget.noExpenses")}
+              </h2>
 
-              <p className="text-gray-500 mt-2">
-                Add the first expense to start tracking our budget.
-              </p>
+              <p className="wos-text-muted mt-2">{t("budget.noExpensesHint")}</p>
             </div>
           ) : (
             filteredItems.map((item) => {
@@ -555,7 +524,7 @@ function BudgetPage() {
                                 title: e.target.value,
                               }))
                             }
-                            className="w-full border border-gray-200 rounded-2xl px-4 py-3 outline-none focus:border-black transition"
+                            className="wos-input"
                           />
 
                           <input
@@ -568,7 +537,7 @@ function BudgetPage() {
                                 cost: e.target.value,
                               }))
                             }
-                            className="w-full border border-gray-200 rounded-2xl px-4 py-3 outline-none focus:border-black transition"
+                            className="wos-input"
                           />
 
                           <input
@@ -581,7 +550,7 @@ function BudgetPage() {
                                 advancePaid: e.target.value,
                               }))
                             }
-                            className="w-full border border-gray-200 rounded-2xl px-4 py-3 outline-none focus:border-black transition"
+                            className="wos-input"
                           />
 
                           <select
@@ -593,14 +562,14 @@ function BudgetPage() {
                                 subcategory: "",
                               }))
                             }
-                            className="w-full border border-gray-200 rounded-2xl px-4 py-3 outline-none focus:border-black transition wos-card"
+                            className="wos-input"
                           >
-                            {categories.map((category) => (
+                            {categories.map((categoryItem) => (
                               <option
-                                key={category.value}
-                                value={category.value}
+                                key={categoryItem.value}
+                                value={categoryItem.value}
                               >
-                                {category.label}
+                                {categoryItem.label}
                               </option>
                             ))}
                           </select>
@@ -614,13 +583,18 @@ function BudgetPage() {
                                   subcategory: e.target.value,
                                 }))
                               }
-                              className="w-full border border-gray-200 rounded-2xl px-4 py-3 outline-none focus:border-black transition wos-card"
+                              className="wos-input"
                             >
-                              <option value="">Choose subcategory</option>
+                              <option value="">
+                                {t("budget.chooseSubcategory")}
+                              </option>
 
-                              {editingSubcategories.map((subcategory) => (
-                                <option key={subcategory} value={subcategory}>
-                                  {subcategory}
+                              {editingSubcategories.map((subcategoryItem) => (
+                                <option
+                                  key={subcategoryItem.value}
+                                  value={subcategoryItem.value}
+                                >
+                                  {subcategoryItem.label}
                                 </option>
                               ))}
                             </select>
@@ -634,13 +608,15 @@ function BudgetPage() {
                                 status: e.target.value,
                               }))
                             }
-                            className="w-full border border-gray-200 rounded-2xl px-4 py-3 outline-none focus:border-black transition wos-card"
+                            className="wos-input"
                           >
-                            <option value="pending">Pending</option>
-                            <option value="advancePayment">
-                              Advance Payment
+                            <option value="pending">
+                              {statusConfig.pending.label}
                             </option>
-                            <option value="paid">Paid</option>
+                            <option value="advancePayment">
+                              {statusConfig.advancePayment.label}
+                            </option>
+                            <option value="paid">{statusConfig.paid.label}</option>
                           </select>
 
                           <textarea
@@ -652,53 +628,54 @@ function BudgetPage() {
                                 notes: e.target.value,
                               }))
                             }
-                            className="w-full border border-gray-200 rounded-2xl px-4 py-3 outline-none focus:border-black transition resize-none"
+                            className="wos-input resize-none"
                           />
 
                           <div className="flex flex-wrap gap-3">
                             <button
                               type="button"
                               onClick={() => saveEdit(item)}
-                              className="text-sm font-medium text-white bg-black px-4 py-2 rounded-2xl hover:bg-gray-800 transition"
+                              className="text-sm font-medium text-white bg-[#660033] px-4 py-2 rounded-2xl hover:opacity-90 transition"
                             >
-                              Save
+                              {t("common.save")}
                             </button>
 
                             <button
                               type="button"
                               onClick={cancelEdit}
-                              className="text-sm font-medium text-gray-700 border border-gray-200 px-4 py-2 rounded-2xl hover:bg-gray-50 transition"
+                              className="wos-secondary-btn"
                             >
-                              Cancel
+                              {t("common.cancel")}
                             </button>
                           </div>
                         </div>
                       ) : (
                         <>
-                          <h2 className="text-lg font-semibold">
+                          <h2 className="text-lg font-semibold wos-text-heading">
                             {item.title}
                           </h2>
 
-                          <div className="text-sm text-gray-500 mt-1">
+                          <div className="text-sm wos-text-muted mt-1">
                             <p>
-                              {categories.find(
-                                (category) => category.value === item.category,
-                              )?.label || "Other"}{" "}
-                              {item.subcategory ? `· ${item.subcategory}` : ""}{" "}
-                              · {formatMoney(item.cost)}
+                              {findBudgetCategoryLabel(t, item.category)}{" "}
+                              {item.subcategory
+                                ? `· ${findBudgetSubcategoryLabel(t, item.category, item.subcategory)}`
+                                : ""}{" "}
+                              · {formatMoney(item.cost, t, language)}
                             </p>
 
                             {item.advancePaid > 0 && (
                               <p className="mt-1">
-                                Advance paid: {formatMoney(item.advancePaid)} ·
-                                Remaining:{" "}
-                                {formatMoney(item.cost - item.advancePaid)}
+                                {t("budget.advancePaidLabel")}:{" "}
+                                {formatMoney(item.advancePaid, t, language)} ·{" "}
+                                {t("budget.remaining")}:{" "}
+                                {formatMoney(item.cost - item.advancePaid, t, language)}
                               </p>
                             )}
                           </div>
 
                           {item.notes && (
-                            <p className="text-sm text-gray-500 mt-3 bg-gray-50 rounded-2xl px-4 py-3">
+                            <p className="text-sm wos-text-muted mt-3 bg-[#fff8fa] rounded-2xl px-4 py-3">
                               {item.notes}
                             </p>
                           )}
@@ -718,21 +695,23 @@ function BudgetPage() {
                           <select
                             value={item.status}
                             onChange={(e) => changeStatus(item, e.target.value)}
-                            className="text-sm font-medium text-gray-700 border border-gray-200 px-4 py-2 rounded-2xl wos-card hover:bg-gray-50 transition outline-none"
+                            className="text-sm font-medium wos-text-heading border border-[#eadde2] px-4 py-2 rounded-2xl wos-card hover:bg-[#fff8fa] transition outline-none"
                           >
-                            <option value="pending">Pending</option>
-                            <option value="advancePayment">
-                              Advance Payment
+                            <option value="pending">
+                              {statusConfig.pending.label}
                             </option>
-                            <option value="paid">Paid</option>
+                            <option value="advancePayment">
+                              {statusConfig.advancePayment.label}
+                            </option>
+                            <option value="paid">{statusConfig.paid.label}</option>
                           </select>
 
                           <button
                             type="button"
                             onClick={() => startEdit(item)}
-                            className="text-sm font-medium text-gray-700 border border-gray-200 px-4 py-2 rounded-2xl hover:bg-gray-50 active:scale-95 transition"
+                            className="wos-secondary-btn active:scale-95 transition"
                           >
-                            Edit
+                            {t("common.edit")}
                           </button>
 
                           <button
@@ -740,7 +719,7 @@ function BudgetPage() {
                             onClick={() => removeItem(item)}
                             className="text-sm font-medium text-red-600 border border-red-100 px-4 py-2 rounded-2xl hover:bg-red-50 active:scale-95 transition"
                           >
-                            Delete
+                            {t("common.delete")}
                           </button>
                         </>
                       )}

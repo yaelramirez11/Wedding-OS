@@ -1,85 +1,29 @@
-const API_URL = "http://localhost:5000";
+import { apiFetch } from "./api.js";
 
-export const fetchDashboardCards = async () => {
-  const response = await fetch(`${API_URL}/dashboard/cards`);
+export const fetchDashboardCards = async () => apiFetch("/dashboard/cards");
 
-  if (!response.ok) {
-    throw new Error("Failed to fetch dashboard cards");
-  }
-
-  return response.json();
-};
-
-export const updateDashboardCard = async (id, data) => {
-  const response = await fetch(`${API_URL}/dashboard/cards/${id}`, {
+export const updateDashboardCard = async (id, data) =>
+  apiFetch(`/dashboard/cards/${id}`, {
     method: "PATCH",
-    headers: {
-      "Content-Type": "application/json",
-    },
     body: JSON.stringify(data),
   });
 
-  if (!response.ok) {
-    throw new Error("Failed to update dashboard card");
-  }
+export const fetchDashboardTasks = async () => apiFetch("/dashboard/tasks");
 
-  return response.json();
-};
-
-export const fetchDashboardTasks = async () => {
-  const response = await fetch(`${API_URL}/dashboard/tasks`);
-
-  if (!response.ok) {
-    throw new Error("Failed to fetch dashboard tasks");
-  }
-
-  return response.json();
-};
-
-export const createDashboardTask = async (data) => {
-  const response = await fetch(`${API_URL}/dashboard/tasks`, {
+export const createDashboardTask = async (data) =>
+  apiFetch("/dashboard/tasks", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
     body: JSON.stringify(data),
   });
 
-  if (!response.ok) {
-    throw new Error("Failed to create dashboard task");
-  }
-
-  return response.json();
-};
-
-export const updateDashboardTask = async (id, data) => {
-  const response = await fetch(`${API_URL}/dashboard/tasks/${id}`, {
+export const updateDashboardTask = async (id, data) =>
+  apiFetch(`/dashboard/tasks/${id}`, {
     method: "PATCH",
-    headers: {
-      "Content-Type": "application/json",
-    },
     body: JSON.stringify(data),
   });
 
-  if (!response.ok) {
-    throw new Error("Failed to update dashboard task");
-  }
-
-  return response.json();
-};
-
-export const createDashboardCard = async (data) => {
-  const response = await fetch(`${API_URL}/dashboard/cards`, {
+export const createDashboardCard = async (data) =>
+  apiFetch("/dashboard/cards", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
     body: JSON.stringify(data),
   });
-
-  if (!response.ok) {
-    throw new Error("Failed to create dashboard card");
-  }
-
-  return response.json();
-};

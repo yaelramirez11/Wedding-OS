@@ -1,34 +1,30 @@
 const prisma = require("../lib/prisma");
+const { deleteOwned, updateOwned } = require("../lib/ownership");
 
-const getAllGuests = async () => {
+const getAllGuests = async (userId) => {
   return prisma.guest.findMany({
+    where: { userId },
     orderBy: {
       createdAt: "desc",
     },
   });
 };
 
-const createGuest = async (guestData) => {
+const createGuest = async (userId, guestData) => {
   return prisma.guest.create({
-    data: guestData,
+    data: {
+      ...guestData,
+      userId,
+    },
   });
 };
 
-const updateGuest = async (id, guestData) => {
-  return prisma.guest.update({
-    where: {
-      id: Number(id),
-    },
-    data: guestData,
-  });
+const updateGuest = async (userId, id, guestData) => {
+  return updateOwned(prisma.guest, userId, id, guestData);
 };
 
-const deleteGuest = async (id) => {
-  return prisma.guest.delete({
-    where: {
-      id: Number(id),
-    },
-  });
+const deleteGuest = async (userId, id) => {
+  return deleteOwned(prisma.guest, userId, id);
 };
 
 module.exports = {

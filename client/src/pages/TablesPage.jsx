@@ -1,30 +1,35 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
+import SeatGuestModal from "../components/tables/SeatGuestModal.jsx";
+import { useIsMobile } from "../hooks/useIsMobile.js";
 import {
   fetchTables,
   fetchUnseatedGuests,
   createTable,
   assignGuestToTable,
 } from "../services/tableService";
-
-const defaultTables = [
-  { name: "Table 1", label: "Family", order: 1 },
-  { name: "Table 2", label: "Friends", order: 2 },
-  { name: "Table 3", label: "Bride side", order: 3 },
-  { name: "Table 4", label: "Groom side", order: 4 },
-  { name: "Table 5", label: "Family", order: 5 },
-  { name: "Table 6", label: "Friends", order: 6 },
-  { name: "Table 7", label: "Special guests", order: 7 },
-  { name: "Table 8", label: "Special guests", order: 8 },
-  { name: "Sweetheart Table", label: "Bride & Groom", order: 9 },
-];
+import { useTranslation } from "../context/PreferencesContext.jsx";
+import {
+  getDefaultTableLabels,
+  getGuestSideConfig,
+  getGuestStatusConfig,
+  getTableDisplayName,
+  SWEETHEART_TABLE_NAME,
+} from "../i18n/helpers.js";
 
 function TablesPage() {
+  const { t } = useTranslation();
+  const isMobile = useIsMobile();
+  const defaultTables = useMemo(() => getDefaultTableLabels(t), [t]);
+  const sideConfig = useMemo(() => getGuestSideConfig(t), [t]);
+  const statusConfig = useMemo(() => getGuestStatusConfig(t), [t]);
+
   const [tables, setTables] = useState([]);
   const [unseatedGuests, setUnseatedGuests] = useState([]);
   const [draggedGuest, setDraggedGuest] = useState(null);
   const [message, setMessage] = useState("");
   const [isSeeding, setIsSeeding] = useState(false);
+  const [seatModalGuest, setSeatModalGuest] = useState(null);
 
   useEffect(() => {
     loadTablesData();
@@ -41,7 +46,7 @@ function TablesPage() {
       setUnseatedGuests(guestsData);
     } catch (error) {
       console.error(error);
-      setMessage("Could not load seating planner.");
+      setMessage(t("tables.loadError"));
     }
   };
 
@@ -62,11 +67,11 @@ function TablesPage() {
     totalGuests === 0 ? 0 : Math.round((seatedGuests / totalGuests) * 100);
 
   const regularTables = tables
-    .filter((table) => table.name !== "Sweetheart Table")
+    .filter((table) => table.name !== SWEETHEART_TABLE_NAME)
     .sort((a, b) => a.order - b.order);
 
   const sweetheartTable = tables.find(
-    (table) => table.name === "Sweetheart Table",
+    (table) => table.name === SWEETHEART_TABLE_NAME,
   );
 
   const handleSeedTables = async () => {
@@ -78,10 +83,10 @@ function TablesPage() {
       }
 
       await loadTablesData();
-      setMessage("Tables created successfully 💗");
+      setMessage(t("tables.createSuccess"));
     } catch (error) {
       console.error(error);
-      setMessage("Could not create tables.");
+      setMessage(t("tables.createError"));
     } finally {
       setIsSeeding(false);
       setTimeout(() => setMessage(""), 2500);
@@ -99,7 +104,9 @@ function TablesPage() {
       await assignGuestToTable(draggedGuest.id, table.id);
       await loadTablesData();
 
-      setMessage(`${draggedGuest.name} seated at ${table.name}`);
+      setMessage(
+        `${draggedGuest.name} ${t("tables.seatedAt")} ${getTableDisplayName(t, table.name)}`,
+      );
     } catch (error) {
       setMessage(error.message);
     } finally {
@@ -115,7 +122,7 @@ function TablesPage() {
       await assignGuestToTable(draggedGuest.id, null);
       await loadTablesData();
 
-      setMessage(`${draggedGuest.name} moved back to unseated`);
+      setMessage(`${draggedGuest.name} ${t("tables.movedToUnseated")}`);
     } catch (error) {
       setMessage(error.message);
     } finally {
@@ -124,13 +131,80 @@ function TablesPage() {
     }
   };
 
+  const handleSeatGuestAtTable = async (table) => {
+    if (!seatModalGuest) return;
+
+    const guest = seatModalGuest;
+
+    try {
+      await assignGuestToTable(guest.id, table.id);
+      await loadTablesData();
+
+      setMessage(
+        `${guest.name} ${t("tables.seatedAt")} ${getTableDisplayName(t, table.name)}`,
+      );
+    } catch (error) {
+      setMessage(error.message);
+    } finally {
+      setSeatModalGuest(null);
+      setTimeout(() => setMessage(""), 2500);
+    }
+  };
+
+  const handleUnseatFromModal = async () => {
+    if (!seatModalGuest) return;
+
+    const guest = seatModalGuest;
+
+    try {
+      await assignGuestToTable(guest.id, null);
+      await loadTablesData();
+
+      setMessage(`${guest.name} ${t("tables.movedToUnseated")}`);
+    } catch (error) {
+      setMessage(error.message);
+    } finally {
+      setSeatModalGuest(null);
+      setTimeout(() => setMessage(""), 2500);
+    }
+  };
+
+  const openSeatModal = (guest) => {
+    if (isMobile) {
+      setSeatModalGuest(guest);
+    }
+  };
+
   const renderGuestChip = (guest, variant = "light") => {
+    const dragProps = isMobile
+      ? {}
+      : {
+          draggable: true,
+          onDragStart: () => handleDragStart(guest),
+        };
+
     return (
       <div
         key={guest.id}
-        draggable
-        onDragStart={() => handleDragStart(guest)}
-        className={`cursor-grab active:cursor-grabbing rounded-full px-3 py-1.5 text-xs font-semibold shadow-sm border transition hover:-translate-y-0.5 ${
+        {...dragProps}
+        role={isMobile ? "button" : undefined}
+        tabIndex={isMobile ? 0 : undefined}
+        onClick={isMobile ? () => openSeatModal(guest) : undefined}
+        onKeyDown={
+          isMobile
+            ? (event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                  event.preventDefault();
+                  openSeatModal(guest);
+                }
+              }
+            : undefined
+        }
+        className={`rounded-full px-3 py-1.5 text-xs font-semibold shadow-sm border transition hover:-translate-y-0.5 ${
+          isMobile
+            ? "cursor-pointer active:scale-95"
+            : "cursor-grab active:cursor-grabbing"
+        } ${
           variant === "dark"
             ? "bg-[#660033] text-white border-[#660033]"
             : "bg-[#fff0f3] text-[#38131f] border-[#eadde2]"
@@ -153,8 +227,8 @@ function TablesPage() {
     return (
       <article
         key={table.id}
-        onDragOver={(e) => e.preventDefault()}
-        onDrop={() => handleDropOnTable(table)}
+        onDragOver={isMobile ? undefined : (event) => event.preventDefault()}
+        onDrop={isMobile ? undefined : () => handleDropOnTable(table)}
         className={`relative overflow-hidden border transition ${
           isSweetheart
             ? "rounded-[2.5rem] bg-gradient-to-br from-[#660033] to-[#38131f] text-white border-[#8c295b] shadow-[0_25px_70px_rgba(102,0,51,0.25)] p-6 min-h-[220px]"
@@ -171,15 +245,15 @@ function TablesPage() {
                   isSweetheart ? "text-white/60" : "text-[#8d7380]"
                 }`}
               >
-                {table.label || "Wedding table"}
+                {table.label || t("tables.defaultTableLabel")}
               </p>
 
               <h2
                 className={`text-2xl font-serif font-semibold mt-1 ${
-                  isSweetheart ? "text-white" : "text-[#38131f]"
+                  isSweetheart ? "text-white" : "wos-text-heading"
                 }`}
               >
-                {table.name}
+                {getTableDisplayName(t, table.name)}
               </h2>
             </div>
 
@@ -225,7 +299,7 @@ function TablesPage() {
                     : "border-[#eadde2] text-[#c6aeb7]"
                 }`}
               >
-                Empty seat
+                {t("tables.emptySeat")}
               </div>
             ))}
           </div>
@@ -248,36 +322,37 @@ function TablesPage() {
 
         <div className="relative z-10 max-w-3xl">
           <p className="text-[#8d7380] text-sm font-medium mb-5">
-            Our seating planner 🪑
+            {t("tables.eyebrow")}
           </p>
 
-          <h1 className="text-[#38131f] text-5xl lg:text-6xl font-semibold leading-[1.05] tracking-tight">
-            Every guest, beautifully seated.
+          <h1 className="wos-text-heading text-5xl lg:text-6xl font-semibold leading-[1.05] tracking-tight">
+            {t("tables.title")}
           </h1>
 
-          <p className="text-[#7f7079] text-lg mt-6 leading-relaxed max-w-2xl">
-            Drag guests into tables, keep every table at exactly ten seats, and
-            organize our reception layout with love.
+          <p className="wos-text-muted text-lg mt-6 leading-relaxed max-w-2xl">
+            {t("tables.subtitle")}
           </p>
         </div>
       </section>
 
       <section className="grid grid-cols-1 md:grid-cols-3 gap-5">
         <div className="wos-card p-6">
-          <p className="text-sm text-[#8d7380]">Total guests</p>
-          <h2 className="text-4xl font-bold mt-2">{totalGuests}</h2>
+          <p className="text-sm text-[#8d7380]">{t("tables.totalGuests")}</p>
+          <h2 className="text-4xl font-bold mt-2 wos-text-heading">
+            {totalGuests}
+          </h2>
         </div>
 
         <div className="wos-card p-6">
-          <p className="text-sm text-[#8d7380]">Full tables</p>
-          <h2 className="text-4xl font-bold mt-2">
+          <p className="text-sm text-[#8d7380]">{t("tables.fullTables")}</p>
+          <h2 className="text-4xl font-bold mt-2 wos-text-heading">
             {fullTables}/{tables.length}
           </h2>
         </div>
 
         <div className="wos-card p-6">
-          <p className="text-sm text-[#8d7380]">Guests seated</p>
-          <h2 className="text-4xl font-bold mt-2">
+          <p className="text-sm text-[#8d7380]">{t("tables.guestsSeated")}</p>
+          <h2 className="text-4xl font-bold mt-2 wos-text-heading">
             {seatedGuests} ({seatedPercentage}%)
           </h2>
         </div>
@@ -286,11 +361,11 @@ function TablesPage() {
       {tables.length === 0 && (
         <section className="wos-soft-card p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h2 className="text-2xl font-serif text-[#38131f]">
-              Create our table layout
+            <h2 className="text-2xl font-serif wos-text-heading">
+              {t("tables.createLayout")}
             </h2>
-            <p className="text-sm text-[#7f7079] mt-1">
-              This will create 8 guest tables plus the sweetheart table.
+            <p className="text-sm wos-text-muted mt-1">
+              {t("tables.createLayoutHint")}
             </p>
           </div>
 
@@ -300,7 +375,7 @@ function TablesPage() {
             disabled={isSeeding}
             className="wos-button"
           >
-            {isSeeding ? "Creating..." : "Create Tables"}
+            {isSeeding ? t("tables.creating") : t("tables.createTables")}
           </button>
         </section>
       )}
@@ -309,14 +384,14 @@ function TablesPage() {
         <div className="wos-card p-6 overflow-hidden">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
             <div>
-              <p className="text-sm text-[#8d7380]">Flexible table map</p>
-              <h2 className="text-3xl font-serif text-[#38131f] mt-2">
-                Reception layout
+              <p className="text-sm text-[#8d7380]">{t("tables.flexibleMap")}</p>
+              <h2 className="text-3xl font-serif wos-text-heading mt-2">
+                {t("tables.receptionLayout")}
               </h2>
             </div>
 
             <p className="text-sm text-[#8d7380]">
-              Drag guests into any table. Max 10 per table.
+              {isMobile ? t("tables.tapHint") : t("tables.dragHint")}
             </p>
           </div>
 
@@ -336,40 +411,61 @@ function TablesPage() {
         </div>
 
         <aside
-          onDragOver={(e) => e.preventDefault()}
-          onDrop={handleDropOnUnseated}
+          onDragOver={isMobile ? undefined : (event) => event.preventDefault()}
+          onDrop={isMobile ? undefined : handleDropOnUnseated}
           className="wos-card p-6 sticky top-28"
         >
           <div>
-            <p className="text-sm text-[#8d7380]">Not seated yet</p>
-            <h2 className="text-3xl font-serif text-[#38131f] mt-2">
-              Unseated guests
+            <p className="text-sm text-[#8d7380]">{t("tables.notSeatedYet")}</p>
+            <h2 className="text-3xl font-serif wos-text-heading mt-2">
+              {t("tables.unseatedGuests")}
             </h2>
           </div>
 
           <div className="mt-6 max-h-[620px] overflow-y-auto pr-2 space-y-2">
             {unseatedGuests.length === 0 ? (
               <div className="rounded-3xl border border-[#eadde2] bg-[#fff8fa] p-5 text-center">
-                <p className="text-sm font-semibold text-[#38131f]">
-                  Everyone is seated ✨
+                <p className="text-sm font-semibold wos-text-heading">
+                  {t("tables.everyoneSeated")}
                 </p>
                 <p className="text-xs text-[#8d7380] mt-1">
-                  Drag someone back here to unseat them.
+                  {isMobile ? t("tables.unseatTapHint") : t("tables.unseatHint")}
                 </p>
               </div>
             ) : (
               unseatedGuests.map((guest) => (
                 <div
                   key={guest.id}
-                  draggable
-                  onDragStart={() => handleDragStart(guest)}
-                  className="cursor-grab active:cursor-grabbing rounded-2xl bg-[#fff8fa] border border-[#eadde2] px-4 py-3 hover:bg-[#fff0f3] transition"
+                  draggable={!isMobile}
+                  onDragStart={
+                    isMobile ? undefined : () => handleDragStart(guest)
+                  }
+                  role={isMobile ? "button" : undefined}
+                  tabIndex={isMobile ? 0 : undefined}
+                  onClick={isMobile ? () => openSeatModal(guest) : undefined}
+                  onKeyDown={
+                    isMobile
+                      ? (event) => {
+                          if (event.key === "Enter" || event.key === " ") {
+                            event.preventDefault();
+                            openSeatModal(guest);
+                          }
+                        }
+                      : undefined
+                  }
+                  className={`rounded-2xl bg-[#fff8fa] border border-[#eadde2] px-4 py-3 transition ${
+                    isMobile
+                      ? "cursor-pointer active:scale-[0.99] hover:bg-[#fff0f3]"
+                      : "cursor-grab active:cursor-grabbing hover:bg-[#fff0f3]"
+                  }`}
                 >
-                  <p className="text-sm font-semibold text-[#38131f]">
+                  <p className="text-sm font-semibold wos-text-heading">
                     {guest.name}
                   </p>
                   <p className="text-xs text-[#8d7380] mt-1">
-                    {guest.side} side · {guest.status}
+                    {sideConfig[guest.side]?.label || sideConfig.both.label} ·{" "}
+                    {statusConfig[guest.status]?.label ||
+                      statusConfig.pending.label}
                   </p>
                 </div>
               ))
@@ -377,6 +473,15 @@ function TablesPage() {
           </div>
         </aside>
       </section>
+
+      <SeatGuestModal
+        open={Boolean(seatModalGuest)}
+        guest={seatModalGuest}
+        tables={tables}
+        onClose={() => setSeatModalGuest(null)}
+        onSelectTable={handleSeatGuestAtTable}
+        onUnseat={handleUnseatFromModal}
+      />
     </div>
   );
 }

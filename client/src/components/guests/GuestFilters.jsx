@@ -1,31 +1,6 @@
-const statusOptions = ["all", "pending", "confirmed", "maybe", "declined"];
+import { useTranslation } from "../../context/PreferencesContext.jsx";
 
-const sideOptions = [
-  {
-    value: "all",
-    label: "All sides",
-    className: "bg-gray-100 text-gray-600 hover:bg-gray-200",
-    activeClassName: "bg-black text-white",
-  },
-  {
-    value: "bride",
-    label: "Bride",
-    className: "bg-rose-50 text-black-700 hover:bg-rose-100",
-    activeClassName: "bg-rose-500 text-white",
-  },
-  {
-    value: "groom",
-    label: "Groom",
-    className: "bg-blue-50 text-black-700 hover:bg-blue-100",
-    activeClassName: "bg-blue-500 text-white",
-  },
-  {
-    value: "both",
-    label: "Both",
-    className: "bg-amber-50 text-black-700 hover:bg-amber-100",
-    activeClassName: "bg-amber-500 text-white",
-  },
-];
+const statusOptions = ["all", "pending", "confirmed", "maybe", "declined"];
 
 function GuestFilters({
   search,
@@ -37,19 +12,46 @@ function GuestFilters({
   sortBy,
   setSortBy,
 }) {
+  const { t } = useTranslation();
+
+  const sideOptions = [
+    {
+      value: "all",
+      labelKey: "side.allSides",
+      className: "bg-gray-100 text-gray-600 hover:bg-gray-200",
+    },
+    {
+      value: "bride",
+      labelKey: "side.bride",
+      className: "bg-rose-50 text-black-700 hover:bg-rose-100",
+    },
+    {
+      value: "groom",
+      labelKey: "side.groom",
+      className: "bg-blue-50 text-black-700 hover:bg-blue-100",
+    },
+    {
+      value: "both",
+      labelKey: "side.both",
+      className: "bg-amber-50 text-black-700 hover:bg-amber-100",
+    },
+  ];
+
   return (
     <div className="wos-card rounded-3xl p-4 border border-black/5 shadow-sm flex flex-col gap-4">
       <input
         type="text"
-        placeholder="Search guests..."
+        placeholder={t("guests.searchPlaceholder")}
         value={search}
         onChange={(e) => setSearch(e.target.value)}
-        className="w-full border border-gray-200 rounded-2xl px-4 py-3 outline-none focus:border-black transition"
+        className="w-full border border-gray-200 rounded-2xl px-4 py-3 outline-none focus:border-black transition wos-input"
       />
 
       <div className="flex flex-col gap-3">
         <div>
-          <p className="text-xs font-medium text-gray-400 mb-2">RSVP status</p>
+          <p className="text-xs font-medium text-gray-400 mb-2">
+            {t("guests.rsvpStatus")}
+          </p>
 
           <div className="flex flex-wrap gap-2">
             {statusOptions.map((item) => (
@@ -63,14 +65,16 @@ function GuestFilters({
                     : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                 }`}
               >
-                {item[0].toUpperCase() + item.slice(1)}
+                {t(`status.${item}`)}
               </button>
             ))}
           </div>
         </div>
 
         <div>
-          <p className="text-xs font-medium text-gray-400 mb-2">Wedding side</p>
+          <p className="text-xs font-medium text-gray-400 mb-2">
+            {t("guests.weddingSide")}
+          </p>
 
           <div className="flex flex-wrap gap-2">
             {sideOptions.map((item) => (
@@ -84,7 +88,7 @@ function GuestFilters({
                     : item.className
                 }`}
               >
-                {item.label}
+                {t(item.labelKey)}
               </button>
             ))}
           </div>
@@ -95,9 +99,9 @@ function GuestFilters({
           onChange={(e) => setSortBy(e.target.value)}
           className="w-full sm:w-fit border border-gray-200 rounded-2xl px-4 py-3 outline-none focus:border-black transition wos-card text-sm"
         >
-          <option value="newest">Newest first</option>
-          <option value="oldest">Oldest first</option>
-          <option value="name">Name A-Z</option>
+          <option value="newest">{t("sort.newest")}</option>
+          <option value="oldest">{t("sort.oldest")}</option>
+          <option value="name">{t("sort.name")}</option>
         </select>
       </div>
     </div>

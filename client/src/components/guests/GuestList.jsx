@@ -1,4 +1,5 @@
 import GuestCard from "./GuestCard.jsx";
+import { useTranslation } from "../../context/PreferencesContext.jsx";
 
 function GuestList({
   guests,
@@ -8,6 +9,8 @@ function GuestList({
   onUpdateGuestName,
   hasGuests,
 }) {
+  const { t } = useTranslation();
+
   if (isLoading) {
     return (
       <div className="space-y-4">
@@ -17,17 +20,16 @@ function GuestList({
       </div>
     );
   }
+
   if (guests.length === 0) {
     return (
       <div className="wos-card border border-dashed border-gray-300 rounded-3xl p-10 text-center">
-        <h2 className="text-xl font-semibold text-gray-900">
-          {hasGuests ? "No matching guests" : "No guests yet"}
+        <h2 className="text-xl font-semibold wos-text-heading">
+          {hasGuests ? t("guests.noMatchingGuests") : t("guests.noGuests")}
         </h2>
 
-        <p className="text-gray-500 mt-2">
-          {hasGuests
-            ? "Try changing the search or filter to find who you’re looking for."
-            : "Add your first guest to start building our wedding list."}
+        <p className="wos-text-muted mt-2">
+          {hasGuests ? t("guests.noMatchingHint") : t("guests.noGuestsHint")}
         </p>
       </div>
     );

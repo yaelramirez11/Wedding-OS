@@ -6,68 +6,51 @@ const {
 } = require("../services/honeymoonService");
 
 const { honeymoonItemSchema } = require("../validators/honeymoonValidator");
+const { normalizeDateOnly } = require("../lib/dateOnly");
 
-const normalizeDate = (date) => {
-  if (!date) return null;
+const normalizeDate = (date) => normalizeDateOnly(date);
 
-  return new Date(date);
-};
-
-const getHoneymoon = async (req, res) => {
+const getHoneymoon = async (req, res, next) => {
   try {
-    const items = await getHoneymoonItems();
-
+    const items = await getHoneymoonItems(req.user.userId);
     res.json(items);
   } catch (error) {
-    res.status(500).json({
-      error: "Failed to fetch honeymoon items",
-    });
+    next(error);
   }
 };
 
-const createHoneymoon = async (req, res) => {
+const createHoneymoon = async (req, res, next) => {
   try {
     const data = honeymoonItemSchema.parse(req.body);
-
-    const item = await createHoneymoonItem({
+    const item = await createHoneymoonItem(req.user.userId, {
       ...data,
       date: normalizeDate(data.date),
     });
-
     res.status(201).json(item);
   } catch (error) {
-    res.status(400).json({
-      error: error.errors?.[0]?.message || error.message,
-    });
+    next(error);
   }
 };
 
-const updateHoneymoon = async (req, res) => {
+const updateHoneymoon = async (req, res, next) => {
   try {
     const data = honeymoonItemSchema.partial().parse(req.body);
-
-    const item = await updateHoneymoonItem(req.params.id, {
+    const item = await updateHoneymoonItem(req.user.userId, req.params.id, {
       ...data,
       date: data.date === undefined ? undefined : normalizeDate(data.date),
     });
-
     res.json(item);
   } catch (error) {
-    res.status(400).json({
-      error: error.errors?.[0]?.message || error.message,
-    });
+    next(error);
   }
 };
 
-const deleteHoneymoon = async (req, res) => {
+const deleteHoneymoon = async (req, res, next) => {
   try {
-    const item = await deleteHoneymoonItem(req.params.id);
-
+    const item = await deleteHoneymoonItem(req.user.userId, req.params.id);
     res.json(item);
   } catch (error) {
-    res.status(500).json({
-      error: "Failed to delete honeymoon item",
-    });
+    next(error);
   }
 };
 

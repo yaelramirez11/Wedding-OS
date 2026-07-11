@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import {
@@ -7,322 +7,29 @@ import {
   updateTimelineItem,
   deleteTimelineItem,
 } from "../services/timelineService";
+import { useTranslation } from "../context/PreferencesContext.jsx";
+import {
+  formatLocaleDate,
+  getTimelineTypeConfig,
+  getTimelineStatusConfig,
+  getTimelinePriorityConfig,
+  getTimelineSignals,
+  getTimelineSeedItems,
+  getTimelineCategoryLabel,
+  sortTimelineItems,
+  toDateInputValue,
+} from "../i18n/helpers.js";
 
 import DeleteTimelineModal from "../components/timeline/DeleteTimelineModal.jsx";
 
-const typeConfig = {
-  planning: {
-    label: "Planning",
-    icon: "📝",
-    color: "bg-[#fff0f3] text-[#660033]",
-  },
-  weddingDay: {
-    label: "Wedding Day",
-    icon: "💍",
-    color: "bg-[#f3ebff] text-[#8258ff]",
-  },
-  honeymoon: {
-    label: "Honeymoon",
-    icon: "✈️",
-    color: "bg-[#eef6ff] text-[#2563eb]",
-  },
-};
-
-const statusConfig = {
-  pending: {
-    label: "Pending",
-    className: "bg-yellow-100 text-yellow-700",
-  },
-  inProgress: {
-    label: "In Progress",
-    className: "bg-blue-100 text-blue-700",
-  },
-  completed: {
-    label: "Completed",
-    className: "bg-green-100 text-green-700",
-  },
-  cancelled: {
-    label: "Cancelled",
-    className: "bg-red-100 text-red-700",
-  },
-};
-
-const priorityConfig = {
-  low: "Low",
-  medium: "Medium",
-  high: "High",
-};
-
-const seedItems = [
-  {
-    title: "Complete sacraments",
-    type: "planning",
-    category: "church",
-    status: "pending",
-    priority: "high",
-    notes: "Baptism, First Communion and Confirmation",
-    order: 1,
-  },
-  {
-    title: "Schedule premarital counseling",
-    type: "planning",
-    category: "church",
-    status: "pending",
-    priority: "high",
-    order: 2,
-  },
-  {
-    title: "Explore and compare hotel options",
-    type: "planning",
-    category: "honeymoon",
-    status: "pending",
-    priority: "medium",
-    order: 3,
-  },
-  {
-    title: "Schedule photography",
-    type: "planning",
-    category: "vendors",
-    status: "pending",
-    priority: "high",
-    order: 4,
-  },
-  {
-    title: "Make wedding dress",
-    type: "planning",
-    category: "bride",
-    status: "pending",
-    priority: "high",
-    order: 5,
-  },
-  {
-    title: "Schedule Get Ready Bride",
-    type: "planning",
-    category: "bride",
-    status: "pending",
-    priority: "medium",
-    order: 6,
-  },
-  {
-    title: "Resolve decoration details",
-    type: "planning",
-    category: "decor",
-    status: "pending",
-    priority: "high",
-    notes: "Decoration, florals, centerpieces, favors and sweetheart table",
-    order: 7,
-  },
-  {
-    title: "Get groom suit",
-    type: "planning",
-    category: "groom",
-    status: "pending",
-    priority: "medium",
-    order: 8,
-  },
-  {
-    title: "Collect RSVPs",
-    type: "planning",
-    category: "guests",
-    status: "pending",
-    priority: "high",
-    order: 9,
-  },
-  {
-    title: "Create seating plan",
-    type: "planning",
-    category: "guests",
-    status: "pending",
-    priority: "high",
-    order: 10,
-  },
-  {
-    title: "Send second and final confirmation",
-    type: "planning",
-    category: "guests",
-    status: "pending",
-    priority: "high",
-    order: 11,
-  },
-  {
-    title: "Confirm final guest count with venue",
-    type: "planning",
-    category: "venue",
-    status: "pending",
-    priority: "high",
-    order: 12,
-  },
-  {
-    title: "Final venue walkthrough",
-    type: "planning",
-    category: "venue",
-    status: "pending",
-    priority: "medium",
-    order: 13,
-  },
-  {
-    title: "Finish venue payments",
-    type: "planning",
-    category: "budget",
-    status: "pending",
-    priority: "high",
-    order: 14,
-  },
-  {
-    title: "Prepare emergency wedding kit",
-    type: "planning",
-    category: "details",
-    status: "pending",
-    priority: "medium",
-    order: 15,
-  },
-  {
-    title: "Confirm all vendors",
-    type: "planning",
-    category: "vendors",
-    status: "pending",
-    priority: "high",
-    order: 16,
-  },
-  {
-    title: "Get Ready Bride",
-    type: "weddingDay",
-    category: "bride",
-    status: "pending",
-    priority: "high",
-    time: "10:00",
-    order: 1,
-  },
-  {
-    title: "Bride leaves",
-    type: "weddingDay",
-    category: "logistics",
-    status: "pending",
-    priority: "high",
-    time: "12:45",
-    order: 2,
-  },
-  {
-    title: "Groom arrival",
-    type: "weddingDay",
-    category: "groom",
-    status: "pending",
-    priority: "high",
-    time: "13:15",
-    order: 3,
-  },
-  {
-    title: "Guest arrival",
-    type: "weddingDay",
-    category: "guests",
-    status: "pending",
-    priority: "medium",
-    time: "13:30",
-    order: 4,
-  },
-  {
-    title: "Wedding Mass",
-    type: "weddingDay",
-    category: "church",
-    status: "pending",
-    priority: "high",
-    time: "14:00",
-    order: 5,
-  },
-  {
-    title: "Wedding photos",
-    type: "weddingDay",
-    category: "photos",
-    status: "pending",
-    priority: "high",
-    time: "15:00",
-    notes: "Couple, family and guests",
-    order: 6,
-  },
-  {
-    title: "Transfer to venue",
-    type: "weddingDay",
-    category: "logistics",
-    status: "pending",
-    priority: "medium",
-    time: "15:50",
-    order: 7,
-  },
-  {
-    title: "Reception opens",
-    type: "weddingDay",
-    category: "reception",
-    status: "pending",
-    priority: "medium",
-    time: "16:00",
-    order: 8,
-  },
-  {
-    title: "Newlyweds arrival",
-    type: "weddingDay",
-    category: "reception",
-    status: "pending",
-    priority: "high",
-    time: "16:30",
-    order: 9,
-  },
-  {
-    title: "Meal",
-    type: "weddingDay",
-    category: "reception",
-    status: "pending",
-    priority: "high",
-    time: "17:00",
-    order: 10,
-  },
-  {
-    title: "Party",
-    type: "weddingDay",
-    category: "party",
-    status: "pending",
-    priority: "medium",
-    time: "18:00",
-    order: 11,
-  },
-  {
-    title: "Cake",
-    type: "weddingDay",
-    category: "reception",
-    status: "pending",
-    priority: "medium",
-    time: "19:00",
-    order: 12,
-  },
-  {
-    title: "Bouquet toss",
-    type: "weddingDay",
-    category: "tradition",
-    status: "pending",
-    priority: "medium",
-    time: "19:30",
-    order: 13,
-  },
-  {
-    title: "Final photos",
-    type: "weddingDay",
-    category: "photos",
-    status: "pending",
-    priority: "medium",
-    time: "20:30",
-    order: 14,
-  },
-  {
-    title: "Departure",
-    type: "weddingDay",
-    category: "logistics",
-    status: "pending",
-    priority: "high",
-    time: "21:00",
-    order: 15,
-  },
-];
-
 function TimelinePage() {
+  const { t, language } = useTranslation();
+  const navigate = useNavigate();
+  const typeConfig = useMemo(() => getTimelineTypeConfig(t), [t]);
+  const statusConfig = useMemo(() => getTimelineStatusConfig(t), [t]);
+  const priorityConfig = useMemo(() => getTimelinePriorityConfig(t), [t]);
+  const signalConfig = useMemo(() => getTimelineSignals(t), [t]);
+
   const [items, setItems] = useState([]);
 
   const [title, setTitle] = useState("");
@@ -333,7 +40,6 @@ function TimelinePage() {
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
   const [notes, setNotes] = useState("");
-  const [order, setOrder] = useState("");
 
   const [loading, setLoading] = useState(false);
   const [activeType, setActiveType] = useState("all");
@@ -348,7 +54,6 @@ function TimelinePage() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   const [celebratedId, setCelebratedId] = useState(null);
-  const navigate = useNavigate();
 
   useEffect(() => {
     loadTimeline();
@@ -374,32 +79,19 @@ function TimelinePage() {
       setItems(data);
     } catch (error) {
       console.error(error);
-      showError("Could not load timeline.");
+      showError(t("timeline.loadError"));
     }
   };
 
-  const formatDate = (value) => {
-    if (!value) return "No date";
-
-    return new Date(value).toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
-  };
+  const formatDate = (value) =>
+    formatLocaleDate(value, language, t("timeline.noDate"));
 
   const filteredItems =
     activeType === "all"
       ? items
       : items.filter((item) => item.type === activeType);
 
-  const sortedItems = [...filteredItems].sort((a, b) => {
-    if (a.type === "weddingDay" && b.type === "weddingDay") {
-      return (a.time || "").localeCompare(b.time || "");
-    }
-
-    return (a.order || 0) - (b.order || 0);
-  });
+  const sortedItems = sortTimelineItems(filteredItems);
 
   const completedItems = items.filter(
     (item) => item.status === "completed",
@@ -416,7 +108,7 @@ function TimelinePage() {
     try {
       setLoading(true);
 
-      const newItem = await createTimelineItem({
+      await createTimelineItem({
         title,
         type,
         category: category.trim() || "general",
@@ -425,11 +117,10 @@ function TimelinePage() {
         date: date || null,
         time: time || null,
         notes: notes.trim() || null,
-        order: Number(order) || 0,
         isCurrent: false,
       });
 
-      setItems((prev) => [...prev, newItem]);
+      await loadTimeline();
 
       setTitle("");
       setType("planning");
@@ -439,12 +130,11 @@ function TimelinePage() {
       setDate("");
       setTime("");
       setNotes("");
-      setOrder("");
 
-      showSuccess("Timeline step added 🌷");
+      showSuccess(t("timeline.addSuccess"));
     } catch (error) {
       console.error(error);
-      showError("Could not add timeline step.");
+      showError(t("timeline.addError"));
     } finally {
       setLoading(false);
     }
@@ -452,28 +142,24 @@ function TimelinePage() {
 
   const changeStatus = async (item, nextStatus) => {
     try {
-      const updatedItem = await updateTimelineItem(item.id, {
+      await updateTimelineItem(item.id, {
         status: nextStatus,
         isCurrent: nextStatus === "completed" ? false : item.isCurrent,
       });
 
-      setItems((prev) =>
-        prev.map((current) =>
-          current.id === updatedItem.id ? updatedItem : current,
-        ),
-      );
+      await loadTimeline();
 
       if (nextStatus === "completed") {
         setCelebratedId(item.id);
-        showSuccess("One more step completed ✨");
+        showSuccess(t("timeline.completedSuccess"));
 
         setTimeout(() => setCelebratedId(null), 1800);
       } else {
-        showSuccess("Timeline status updated");
+        showSuccess(t("timeline.statusUpdateSuccess"));
       }
     } catch (error) {
       console.error(error);
-      showError("Could not update timeline step.");
+      showError(t("timeline.updateError"));
     }
   };
 
@@ -491,12 +177,12 @@ function TimelinePage() {
 
       showSuccess(
         updatedItem.isCurrent
-          ? "Marked as where we are 💗"
-          : "Removed current marker",
+          ? t("timeline.markedCurrent")
+          : t("timeline.removedCurrent"),
       );
     } catch (error) {
       console.error(error);
-      showError("Could not update current marker.");
+      showError(t("timeline.currentMarkerError"));
     }
   };
 
@@ -509,10 +195,9 @@ function TimelinePage() {
       category: item.category,
       status: item.status,
       priority: item.priority,
-      date: item.date?.split("T")[0] || "",
+      date: toDateInputValue(item.date),
       time: item.time || "",
       notes: item.notes || "",
-      order: item.order || 0,
       isCurrent: Boolean(item.isCurrent),
     });
   };
@@ -524,28 +209,23 @@ function TimelinePage() {
 
   const saveEdit = async (item) => {
     try {
-      const updatedItem = await updateTimelineItem(item.id, {
+      await updateTimelineItem(item.id, {
         ...editingItem,
         category: editingItem.category.trim() || "general",
         date: editingItem.date || null,
         time: editingItem.time || null,
         notes: editingItem.notes.trim() || null,
-        order: Number(editingItem.order) || 0,
         isCurrent:
           editingItem.status === "completed" ? false : editingItem.isCurrent,
       });
 
-      setItems((prev) =>
-        prev.map((current) =>
-          current.id === updatedItem.id ? updatedItem : current,
-        ),
-      );
+      await loadTimeline();
 
       cancelEdit();
-      showSuccess("Timeline step updated");
+      showSuccess(t("timeline.updateSuccess"));
     } catch (error) {
       console.error(error);
-      showError("Could not update timeline step.");
+      showError(t("timeline.updateError"));
     }
   };
 
@@ -564,10 +244,10 @@ function TimelinePage() {
         prev.filter((current) => current.id !== itemToDelete.id),
       );
 
-      showSuccess("Timeline step deleted");
+      showSuccess(t("timeline.deleteSuccess"));
     } catch (error) {
       console.error(error);
-      showError("Could not delete timeline step.");
+      showError(t("timeline.deleteError"));
     } finally {
       setItemToDelete(null);
       setIsDeleteModalOpen(false);
@@ -578,18 +258,15 @@ function TimelinePage() {
     try {
       setLoading(true);
 
-      const createdItems = [];
-
-      for (const item of seedItems) {
-        const created = await createTimelineItem(item);
-        createdItems.push(created);
+      for (const item of getTimelineSeedItems(t)) {
+        await createTimelineItem(item);
       }
 
-      setItems((prev) => [...prev, ...createdItems]);
-      showSuccess("Our timeline was created 💗");
+      await loadTimeline();
+      showSuccess(t("timeline.seedSuccess"));
     } catch (error) {
       console.error(error);
-      showError("Could not seed timeline.");
+      showError(t("timeline.seedError"));
     } finally {
       setLoading(false);
     }
@@ -598,9 +275,14 @@ function TimelinePage() {
   const getDaysUntil = (dateValue) => {
     if (!dateValue) return null;
 
-    const today = new Date();
-    const target = new Date(dateValue);
+    const storedDate = new Date(dateValue);
+    const target = new Date(
+      storedDate.getUTCFullYear(),
+      storedDate.getUTCMonth(),
+      storedDate.getUTCDate(),
+    );
 
+    const today = new Date();
     today.setHours(0, 0, 0, 0);
     target.setHours(0, 0, 0, 0);
 
@@ -613,17 +295,11 @@ function TimelinePage() {
     if (item.status === "completed") return null;
 
     if (daysUntil !== null && daysUntil < 0) {
-      return {
-        label: "Late",
-        className: "bg-red-100 text-red-700",
-      };
+      return signalConfig.late;
     }
 
     if (daysUntil !== null && daysUntil <= 7) {
-      return {
-        label: "Coming soon",
-        className: "bg-amber-100 text-amber-700",
-      };
+      return signalConfig.comingSoon;
     }
 
     return null;
@@ -657,24 +333,20 @@ function TimelinePage() {
 
   const currentItems = items.filter((item) => item.isCurrent);
 
-  const nextItem = [...items]
-    .filter((item) => item.status !== "completed")
-    .sort((a, b) => {
-      if (a.date && b.date) return new Date(a.date) - new Date(b.date);
-
-      return (a.order || 0) - (b.order || 0);
-    })[0];
+  const nextItem = sortTimelineItems(
+    items.filter((item) => item.status !== "completed"),
+  )[0];
 
   return (
     <div className="space-y-8">
       {successMessage && (
-        <div className="rounded-2xl bg-green-100 text-green-700 px-5 py-4 text-sm font-medium">
+        <div className="rounded-2xl px-5 py-4 text-sm font-medium wos-alert-success">
           {successMessage}
         </div>
       )}
 
       {errorMessage && (
-        <div className="rounded-2xl bg-red-100 text-red-700 px-5 py-4 text-sm font-medium">
+        <div className="rounded-2xl px-5 py-4 text-sm font-medium wos-alert-error">
           {errorMessage}
         </div>
       )}
@@ -685,54 +357,53 @@ function TimelinePage() {
 
         <div className="relative z-10 max-w-3xl">
           <p className="text-[#8d7380] text-sm font-medium mb-5">
-            Our wedding timeline 🛤️
+            {t("timeline.eyebrow")}
           </p>
 
-          <h1 className="text-[#38131f] text-5xl lg:text-6xl font-semibold leading-[1.05] tracking-tight">
-            The little path to our forever.
+          <h1 className="wos-text-heading text-5xl lg:text-6xl font-semibold leading-[1.05] tracking-tight">
+            {t("timeline.title")}
           </h1>
 
-          <p className="text-[#7f7079] text-lg mt-6 leading-relaxed max-w-2xl">
-            Planning tasks, wedding day moments and honeymoon steps organized
-            like a romantic little road we walk together.
+          <p className="wos-text-muted text-lg mt-6 leading-relaxed max-w-2xl">
+            {t("timeline.subtitle")}
           </p>
         </div>
       </section>
 
       <section className="grid grid-cols-1 md:grid-cols-4 gap-5">
         <div className="wos-card p-6">
-          <p className="text-sm text-[#8d7380]">Total steps</p>
+          <p className="text-sm text-[#8d7380]">{t("timeline.totalSteps")}</p>
           <h2 className="text-4xl font-bold mt-2">{items.length}</h2>
         </div>
 
         <div className="wos-card p-6">
-          <p className="text-sm text-[#8d7380]">Completed</p>
+          <p className="text-sm text-[#8d7380]">{t("timeline.completed")}</p>
           <h2 className="text-4xl font-bold mt-2">{completedItems}</h2>
         </div>
 
         <div className="wos-card p-6">
-          <p className="text-sm text-[#8d7380]">Progress</p>
+          <p className="text-sm text-[#8d7380]">{t("timeline.progress")}</p>
           <h2 className="text-4xl font-bold mt-2">{progress}%</h2>
         </div>
 
         <div className="wos-card p-6">
-          <p className="text-sm text-[#8d7380]">We’re here</p>
+          <p className="text-sm text-[#8d7380]">{t("timeline.weAreHere")}</p>
 
-          <h2 className="text-xl font-serif font-semibold mt-3 line-clamp-2">
-            {currentItems[0]?.title || "Choose a step 💗"}
+          <h2 className="text-xl font-serif font-semibold mt-3 line-clamp-2 wos-text-heading">
+            {currentItems[0]?.title || t("timeline.chooseStep")}
           </h2>
         </div>
       </section>
       <section className="wos-soft-card p-6">
-        <p className="text-sm text-[#8d7380]">Next step</p>
+        <p className="text-sm text-[#8d7380]">{t("timeline.nextStep")}</p>
 
-        <h2 className="text-3xl font-serif text-[#38131f] mt-2">
-          {nextItem?.title || "Everything looks complete ✨"}
+        <h2 className="text-3xl font-serif wos-text-heading mt-2">
+          {nextItem?.title || t("timeline.allComplete")}
         </h2>
 
         {nextItem && (
           <p className="text-sm text-[#7f7079] mt-2">
-            {nextItem.category} · {formatDate(nextItem.date)}
+            {getTimelineCategoryLabel(t, nextItem.category)} · {formatDate(nextItem.date)}
             {nextItem.time ? ` · ${nextItem.time}` : ""}
           </p>
         )}
@@ -741,11 +412,11 @@ function TimelinePage() {
       {items.length === 0 && (
         <section className="wos-soft-card p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h2 className="text-2xl font-serif text-[#38131f]">
-              Create our real timeline
+            <h2 className="text-2xl font-serif wos-text-heading">
+              {t("timeline.createTimeline")}
             </h2>
-            <p className="text-sm text-[#7f7079] mt-1">
-              Add the planning and wedding day steps we already defined.
+            <p className="text-sm wos-text-muted mt-1">
+              {t("timeline.createTimelineHint")}
             </p>
           </div>
 
@@ -755,17 +426,29 @@ function TimelinePage() {
             className="wos-button"
             disabled={loading}
           >
-            Seed our timeline
+            {t("timeline.seedTimeline")}
           </button>
         </section>
       )}
 
       <section className="flex flex-wrap gap-3">
         {[
-          { value: "all", label: "All", icon: "♡" },
-          { value: "planning", label: "Planning", icon: "📝" },
-          { value: "weddingDay", label: "Wedding Day", icon: "💍" },
-          { value: "honeymoon", label: "Honeymoon", icon: "✈️" },
+          { value: "all", label: t("timeline.filterAll"), icon: "♡" },
+          {
+            value: "planning",
+            label: typeConfig.planning.label,
+            icon: typeConfig.planning.icon,
+          },
+          {
+            value: "weddingDay",
+            label: typeConfig.weddingDay.label,
+            icon: typeConfig.weddingDay.icon,
+          },
+          {
+            value: "honeymoon",
+            label: typeConfig.honeymoon.label,
+            icon: typeConfig.honeymoon.icon,
+          },
         ].map((item) => (
           <button
             key={item.value}
@@ -791,19 +474,19 @@ function TimelinePage() {
 
           <div className="relative z-10 space-y-4">
             <div>
-              <h2 className="text-2xl font-serif font-semibold text-[#38131f]">
-                Add timeline step 🌷
+              <h2 className="text-2xl font-serif font-semibold wos-text-heading">
+                {t("timeline.addStep")}
               </h2>
 
-              <p className="text-sm text-[#7f7079] mt-2">
-                Add anything new without changing code later.
+              <p className="text-sm wos-text-muted mt-2">
+                {t("timeline.addStepHint")}
               </p>
             </div>
 
             <input
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="Step title"
+              placeholder={t("timeline.stepTitle")}
               className="wos-input"
             />
 
@@ -812,15 +495,15 @@ function TimelinePage() {
               onChange={(e) => setType(e.target.value)}
               className="wos-input"
             >
-              <option value="planning">Planning</option>
-              <option value="weddingDay">Wedding Day</option>
-              <option value="honeymoon">Honeymoon</option>
+              <option value="planning">{typeConfig.planning.label}</option>
+              <option value="weddingDay">{typeConfig.weddingDay.label}</option>
+              <option value="honeymoon">{typeConfig.honeymoon.label}</option>
             </select>
 
             <input
               value={category}
               onChange={(e) => setCategory(e.target.value)}
-              placeholder="Category"
+              placeholder={t("timeline.category")}
               className="wos-input"
             />
 
@@ -829,10 +512,10 @@ function TimelinePage() {
               onChange={(e) => setStatus(e.target.value)}
               className="wos-input"
             >
-              <option value="pending">Pending</option>
-              <option value="inProgress">In Progress</option>
-              <option value="completed">Completed</option>
-              <option value="cancelled">Cancelled</option>
+              <option value="pending">{statusConfig.pending.label}</option>
+              <option value="inProgress">{statusConfig.inProgress.label}</option>
+              <option value="completed">{statusConfig.completed.label}</option>
+              <option value="cancelled">{statusConfig.cancelled.label}</option>
             </select>
 
             <select
@@ -840,9 +523,9 @@ function TimelinePage() {
               onChange={(e) => setPriority(e.target.value)}
               className="wos-input"
             >
-              <option value="low">Low priority</option>
-              <option value="medium">Medium priority</option>
-              <option value="high">High priority</option>
+              <option value="low">{t("timeline.priorityLow")}</option>
+              <option value="medium">{t("timeline.priorityMedium")}</option>
+              <option value="high">{t("timeline.priorityHigh")}</option>
             </select>
 
             <input
@@ -859,18 +542,10 @@ function TimelinePage() {
               className="wos-input"
             />
 
-            <input
-              value={order}
-              onChange={(e) => setOrder(e.target.value)}
-              type="number"
-              placeholder="Order"
-              className="wos-input"
-            />
-
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="Notes, darling..."
+              placeholder={t("common.notesPlaceholder")}
               rows={4}
               maxLength={500}
               className="wos-input resize-none"
@@ -881,7 +556,7 @@ function TimelinePage() {
               disabled={loading || !title.trim()}
               className="w-full wos-button"
             >
-              {loading ? "Adding..." : "Add Step"}
+              {loading ? t("common.adding") : t("timeline.addStepBtn")}
             </button>
           </div>
         </form>
@@ -892,13 +567,11 @@ function TimelinePage() {
           <div className="space-y-5">
             {sortedItems.length === 0 ? (
               <div className="wos-card p-10 text-center">
-                <h2 className="text-2xl font-serif font-semibold text-[#38131f]">
-                  No timeline steps yet
+                <h2 className="text-2xl font-serif font-semibold wos-text-heading">
+                  {t("timeline.noSteps")}
                 </h2>
 
-                <p className="text-[#7f7079] mt-2">
-                  Add the first step of our little wedding path.
-                </p>
+                <p className="wos-text-muted mt-2">{t("timeline.noStepsHint")}</p>
               </div>
             ) : (
               sortedItems.map((item, index) => {
@@ -963,9 +636,9 @@ function TimelinePage() {
                                 }
                                 className="wos-input"
                               >
-                                <option value="planning">Planning</option>
-                                <option value="weddingDay">Wedding Day</option>
-                                <option value="honeymoon">Honeymoon</option>
+                                <option value="planning">{typeConfig.planning.label}</option>
+                                <option value="weddingDay">{typeConfig.weddingDay.label}</option>
+                                <option value="honeymoon">{typeConfig.honeymoon.label}</option>
                               </select>
 
                               <input
@@ -989,10 +662,10 @@ function TimelinePage() {
                                 }
                                 className="wos-input"
                               >
-                                <option value="pending">Pending</option>
-                                <option value="inProgress">In Progress</option>
-                                <option value="completed">Completed</option>
-                                <option value="cancelled">Cancelled</option>
+                                <option value="pending">{statusConfig.pending.label}</option>
+                                <option value="inProgress">{statusConfig.inProgress.label}</option>
+                                <option value="completed">{statusConfig.completed.label}</option>
+                                <option value="cancelled">{statusConfig.cancelled.label}</option>
                               </select>
 
                               <select
@@ -1005,9 +678,9 @@ function TimelinePage() {
                                 }
                                 className="wos-input"
                               >
-                                <option value="low">Low</option>
-                                <option value="medium">Medium</option>
-                                <option value="high">High</option>
+                                <option value="low">{priorityConfig.low}</option>
+                                <option value="medium">{priorityConfig.medium}</option>
+                                <option value="high">{priorityConfig.high}</option>
                               </select>
 
                               <input
@@ -1034,21 +707,9 @@ function TimelinePage() {
                                 className="wos-input"
                               />
 
-                              <input
-                                type="number"
-                                value={editingItem.order}
-                                onChange={(e) =>
-                                  setEditingItem((prev) => ({
-                                    ...prev,
-                                    order: e.target.value,
-                                  }))
-                                }
-                                className="wos-input"
-                              />
-
                               <label className="flex items-center justify-between gap-4 rounded-2xl border border-[#eadde2] px-4 py-3">
-                                <span className="text-sm font-semibold text-[#38131f]">
-                                  We’re here
+                                <span className="text-sm font-semibold wos-text-heading">
+                                  {t("timeline.weAreHere")}
                                 </span>
 
                                 <input
@@ -1082,15 +743,15 @@ function TimelinePage() {
                                   onClick={() => saveEdit(item)}
                                   className="wos-button"
                                 >
-                                  Save
+                                  {t("common.save")}
                                 </button>
 
                                 <button
                                   type="button"
                                   onClick={cancelEdit}
-                                  className="text-sm font-medium text-gray-700 border border-[#eadde2] px-4 py-2 rounded-2xl hover:bg-[#fff8fa] transition"
+                                  className="wos-secondary-btn"
                                 >
-                                  Cancel
+                                  {t("common.cancel")}
                                 </button>
                               </div>
                             </div>
@@ -1123,7 +784,7 @@ function TimelinePage() {
 
                                 {item.isCurrent && (
                                   <span className="w-fit text-xs font-semibold px-3 py-1 rounded-full bg-[#660033] text-white">
-                                    We’re here 💗
+                                    {t("timeline.weAreHereBadge")}
                                   </span>
                                 )}
                               </div>
@@ -1134,7 +795,7 @@ function TimelinePage() {
                                 </h2>
 
                                 <p className="text-sm text-[#7f7079] mt-2">
-                                  {item.category} · {formatDate(item.date)}{" "}
+                                  {getTimelineCategoryLabel(t, item.category)} · {formatDate(item.date)}{" "}
                                   {item.time ? `· ${item.time}` : ""}
                                 </p>
                               </div>
@@ -1157,10 +818,10 @@ function TimelinePage() {
                               }
                               className="text-sm font-medium text-gray-700 border border-[#eadde2] px-4 py-2 rounded-2xl bg-white hover:bg-[#fff8fa] transition outline-none"
                             >
-                              <option value="pending">Pending</option>
-                              <option value="inProgress">In Progress</option>
-                              <option value="completed">Completed</option>
-                              <option value="cancelled">Cancelled</option>
+                              <option value="pending">{statusConfig.pending.label}</option>
+                              <option value="inProgress">{statusConfig.inProgress.label}</option>
+                              <option value="completed">{statusConfig.completed.label}</option>
+                              <option value="cancelled">{statusConfig.cancelled.label}</option>
                             </select>
                             {modulePath && (
                               <button
@@ -1168,7 +829,7 @@ function TimelinePage() {
                                 onClick={() => navigate(modulePath)}
                                 className="text-sm font-medium text-[#660033] border border-[#eadde2] px-4 py-2 rounded-2xl hover:bg-[#fff8fa] transition"
                               >
-                                Open module
+                                {t("timeline.openModule")}
                               </button>
                             )}
 
@@ -1177,15 +838,15 @@ function TimelinePage() {
                               onClick={() => toggleCurrent(item)}
                               className="text-sm font-medium text-[#660033] border border-[#eadde2] px-4 py-2 rounded-2xl hover:bg-[#fff8fa] transition"
                             >
-                              {item.isCurrent ? "Unset here" : "We’re here"}
+                              {item.isCurrent ? t("timeline.unsetHere") : t("timeline.weAreHere")}
                             </button>
 
                             <button
                               type="button"
                               onClick={() => startEdit(item)}
-                              className="text-sm font-medium text-gray-700 border border-[#eadde2] px-4 py-2 rounded-2xl hover:bg-[#fff8fa] transition"
+                              className="wos-secondary-btn"
                             >
-                              Edit
+                              {t("common.edit")}
                             </button>
 
                             <button
@@ -1193,7 +854,7 @@ function TimelinePage() {
                               onClick={() => removeItem(item)}
                               className="text-sm font-medium text-red-600 border border-red-100 px-4 py-2 rounded-2xl hover:bg-red-50 transition"
                             >
-                              Delete
+                              {t("common.delete")}
                             </button>
                           </div>
                         )}

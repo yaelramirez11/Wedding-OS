@@ -1,55 +1,20 @@
-const API_URL = "http://localhost:5000";
+import { apiFetch } from "./api.js";
 
-export const fetchBudgetItems = async () => {
-  const response = await fetch(`${API_URL}/budget`);
+export const fetchBudgetItems = async () => apiFetch("/budget");
 
-  if (!response.ok) {
-    throw new Error("Failed to fetch budget");
-  }
-
-  return response.json();
-};
-
-export const createBudgetItem = async (data) => {
-  const response = await fetch(`${API_URL}/budget`, {
+export const createBudgetItem = async (data) =>
+  apiFetch("/budget", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
     body: JSON.stringify(data),
   });
 
-  if (!response.ok) {
-    throw new Error("Failed to create budget item");
-  }
-
-  return response.json();
-};
-
-export const updateBudgetItem = async (id, data) => {
-  const response = await fetch(`${API_URL}/budget/${id}`, {
+export const updateBudgetItem = async (id, data) =>
+  apiFetch(`/budget/${id}`, {
     method: "PATCH",
-    headers: {
-      "Content-Type": "application/json",
-    },
     body: JSON.stringify(data),
   });
 
-  if (!response.ok) {
-    throw new Error("Failed to update budget item");
-  }
-
-  return response.json();
-};
-
-export const deleteBudgetItem = async (id) => {
-  const response = await fetch(`${API_URL}/budget/${id}`, {
+export const deleteBudgetItem = async (id) =>
+  apiFetch(`/budget/${id}`, {
     method: "DELETE",
   });
-
-  if (!response.ok) {
-    throw new Error("Failed to delete budget item");
-  }
-
-  return response.json();
-};

@@ -1,34 +1,30 @@
 const prisma = require("../lib/prisma");
+const { deleteOwned, updateOwned } = require("../lib/ownership");
 
-const getHoneymoonItems = () => {
+const getHoneymoonItems = (userId) => {
   return prisma.honeymoonItem.findMany({
+    where: { userId },
     orderBy: {
       createdAt: "desc",
     },
   });
 };
 
-const createHoneymoonItem = (data) => {
+const createHoneymoonItem = (userId, data) => {
   return prisma.honeymoonItem.create({
-    data,
+    data: {
+      ...data,
+      userId,
+    },
   });
 };
 
-const updateHoneymoonItem = (id, data) => {
-  return prisma.honeymoonItem.update({
-    where: {
-      id: Number(id),
-    },
-    data,
-  });
+const updateHoneymoonItem = (userId, id, data) => {
+  return updateOwned(prisma.honeymoonItem, userId, id, data);
 };
 
-const deleteHoneymoonItem = (id) => {
-  return prisma.honeymoonItem.delete({
-    where: {
-      id: Number(id),
-    },
-  });
+const deleteHoneymoonItem = (userId, id) => {
+  return deleteOwned(prisma.honeymoonItem, userId, id);
 };
 
 module.exports = {

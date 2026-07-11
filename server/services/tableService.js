@@ -1,4 +1,6 @@
 const prisma = require("../lib/prisma");
+const { createError, notFoundError } = require("../lib/errors");
+const { deleteOwned, updateOwned } = require("../lib/ownership");
 
 const TABLE_CAPACITY = 10;
 const SWEETHEART_TABLE_CAPACITY = 2;
@@ -9,10 +11,12 @@ const getCapacityForTable = (table) => {
     : TABLE_CAPACITY;
 };
 
-const getTables = async () => {
+const getTables = async (userId) => {
   return prisma.weddingTable.findMany({
+    where: { userId },
     include: {
       guests: {
+        where: { userId },
         orderBy: {
           createdAt: "asc",
         },
@@ -24,7 +28,7 @@ const getTables = async () => {
   });
 };
 
-const createTable = async (data) => {
+const createTable = async (userId, data) => {
   const capacity =
     data.name === "Sweetheart Table"
       ? SWEETHEART_TABLE_CAPACITY
@@ -34,23 +38,31 @@ const createTable = async (data) => {
     data: {
       ...data,
       capacity,
+      userId,
     },
   });
 };
 
-const updateTable = async (id, data) => {
-  return prisma.weddingTable.update({
+const updateTable = async (userId, id, data) => {
+  return updateOwned(prisma.weddingTable, userId, id, data);
+};
+
+const deleteTable = async (userId, id) => {
+  const table = await prisma.weddingTable.findFirst({
     where: {
       id: Number(id),
+      userId,
     },
-    data,
   });
-};
 
-const deleteTable = async (id) => {
+  if (!table) {
+    throw notFoundError();
+  }
+
   await prisma.guest.updateMany({
     where: {
       tableId: Number(id),
+      userId,
     },
     data: {
       tableId: null,
@@ -64,7 +76,18 @@ const deleteTable = async (id) => {
   });
 };
 
-const assignGuestToTable = async ({ guestId, tableId }) => {
+const assignGuestToTable = async (userId, { guestId, tableId }) => {
+  const guest = await prisma.guest.findFirst({
+    where: {
+      id: guestId,
+      userId,
+    },
+  });
+
+  if (!guest) {
+    throw notFoundError("Guest not found.");
+  }
+
   if (!tableId) {
     return prisma.guest.update({
       where: {
@@ -76,14 +99,15 @@ const assignGuestToTable = async ({ guestId, tableId }) => {
     });
   }
 
-  const table = await prisma.weddingTable.findUnique({
+  const table = await prisma.weddingTable.findFirst({
     where: {
       id: tableId,
+      userId,
     },
   });
 
   if (!table) {
-    throw new Error("Table not found.");
+    throw createError("Table not found.", 404);
   }
 
   const capacity = getCapacityForTable(table);
@@ -91,11 +115,12 @@ const assignGuestToTable = async ({ guestId, tableId }) => {
   const count = await prisma.guest.count({
     where: {
       tableId,
+      userId,
     },
   });
 
   if (count >= capacity) {
-    throw new Error(`This table already has ${capacity} guests.`);
+    throw createError(`This table already has ${capacity} guests.`, 400);
   }
 
   return prisma.guest.update({
@@ -108,10 +133,12 @@ const assignGuestToTable = async ({ guestId, tableId }) => {
   });
 };
 
-const getUnseatedGuests = async () => {
+const getUnseatedGuests = async (userId) => {
   return prisma.guest.findMany({
     where: {
+      userId,
       tableId: null,
+      status: { not: "declined" },
     },
     orderBy: {
       createdAt: "asc",

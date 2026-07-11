@@ -1,3 +1,5 @@
+import { useTranslation } from "../../context/PreferencesContext.jsx";
+
 function GuestForm({
   name,
   setName,
@@ -10,25 +12,32 @@ function GuestForm({
   loading,
   onSubmit,
 }) {
+  const { t } = useTranslation();
   const trimmedName = name.trim();
   const isValid = trimmedName.length >= 3;
   const showError = trimmedName.length > 0 && trimmedName.length < 3;
+
+  const sideOptions = [
+    { value: "bride", labelKey: "side.bride", className: "bg-rose-100 text-black-700" },
+    { value: "groom", labelKey: "side.groom", className: "bg-blue-50 text-black-700" },
+    { value: "both", labelKey: "side.both", className: "bg-amber-50 text-black-700" },
+  ];
 
   return (
     <form
       onSubmit={onSubmit}
       className="wos-card p-6 xl:sticky xl:top-28 overflow-hidden relative"
     >
-      <div className="absolute -bottom-10 -right-10 h-40 w-40 rounded-full bg-[#fff0f3]" />
+      <div className="absolute -bottom-10 -right-10 h-40 w-40 rounded-full bg-[var(--wos-rose-soft)]" />
 
       <div className="relative z-10">
         <div className="mb-6">
-          <h2 className="text-2xl font-serif font-semibold text-[#38131f]">
-            Add a guest
+          <h2 className="text-2xl font-serif font-semibold wos-text-heading">
+            {t("guests.addGuest")}
           </h2>
 
-          <p className="text-sm text-[#7f7079] mt-2">
-            Add someone to our wedding guest list.
+          <p className="text-sm wos-text-muted mt-2">
+            {t("guests.addGuestSubtitle")}
           </p>
         </div>
 
@@ -36,42 +45,24 @@ function GuestForm({
           <div>
             <input
               type="text"
-              placeholder="Guest name"
+              placeholder={t("guests.guestName")}
               value={name}
               onChange={(e) => setName(e.target.value)}
               className={`wos-input ${showError ? "border-red-400" : ""}`}
             />
 
             {showError && (
-              <p className="text-sm text-red-500 mt-2">
-                The name must have at least 3 characters, darling
-              </p>
+              <p className="text-sm text-red-500 mt-2">{t("guests.nameMinError")}</p>
             )}
           </div>
 
           <div>
-            <p className="text-xs font-semibold text-[#8d7380] mb-2">
-              Wedding side
+            <p className="text-xs font-semibold wos-text-muted mb-2">
+              {t("guests.weddingSide")}
             </p>
 
             <div className="flex flex-wrap gap-2">
-              {[
-                {
-                  value: "bride",
-                  label: "Bride",
-                  className: "bg-rose-100 text-black-700",
-                },
-                {
-                  value: "groom",
-                  label: "Groom",
-                  className: "bg-blue-50 text-black-700",
-                },
-                {
-                  value: "both",
-                  label: "Both",
-                  className: "bg-amber-50 text-black-700",
-                },
-              ].map((item) => (
+              {sideOptions.map((item) => (
                 <button
                   key={item.value}
                   type="button"
@@ -82,20 +73,18 @@ function GuestForm({
                       : item.className
                   }`}
                 >
-                  {item.label}
+                  {t(item.labelKey)}
                 </button>
               ))}
             </div>
           </div>
 
-          <label className="flex items-center justify-between gap-4 rounded-2xl border border-[#eadde2] px-4 py-3 cursor-pointer hover:bg-[#fff8fa] transition">
+          <label className="flex items-center justify-between gap-4 rounded-2xl border border-[var(--wos-border-soft)] px-4 py-3 cursor-pointer hover:bg-[var(--wos-surface-soft)] transition">
             <div>
-              <p className="text-sm font-semibold text-[#38131f]">
-                Plus one allowed
+              <p className="text-sm font-semibold wos-text-heading">
+                {t("guests.plusOne")}
               </p>
-              <p className="text-xs text-[#8d7380]">
-                Can this guest bring someone?
-              </p>
+              <p className="text-xs wos-text-muted">{t("guests.plusOneHint")}</p>
             </div>
 
             <input
@@ -107,7 +96,7 @@ function GuestForm({
           </label>
 
           <textarea
-            placeholder="Notes, darling..."
+            placeholder={t("common.notesPlaceholder")}
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             maxLength={300}
@@ -120,7 +109,7 @@ function GuestForm({
             disabled={loading || !isValid}
             className="w-full wos-button"
           >
-            {loading ? "Adding..." : "Add Guest"}
+            {loading ? t("common.adding") : t("guests.addGuestBtn")}
           </button>
         </div>
       </div>

@@ -1,34 +1,30 @@
 const prisma = require("../lib/prisma");
+const { deleteOwned, updateOwned } = require("../lib/ownership");
 
-const getBudgetItems = () => {
+const getBudgetItems = (userId) => {
   return prisma.budgetItem.findMany({
+    where: { userId },
     orderBy: {
       createdAt: "desc",
     },
   });
 };
 
-const createBudgetItem = (data) => {
+const createBudgetItem = (userId, data) => {
   return prisma.budgetItem.create({
-    data,
+    data: {
+      ...data,
+      userId,
+    },
   });
 };
 
-const updateBudgetItem = (id, data) => {
-  return prisma.budgetItem.update({
-    where: {
-      id: Number(id),
-    },
-    data,
-  });
+const updateBudgetItem = (userId, id, data) => {
+  return updateOwned(prisma.budgetItem, userId, id, data);
 };
 
-const deleteBudgetItem = (id) => {
-  return prisma.budgetItem.delete({
-    where: {
-      id: Number(id),
-    },
-  });
+const deleteBudgetItem = (userId, id) => {
+  return deleteOwned(prisma.budgetItem, userId, id);
 };
 
 module.exports = {

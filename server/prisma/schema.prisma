@@ -7,6 +7,33 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model User {
+  id                   Int                   @id @default(autoincrement())
+  email                String                @unique
+  password             String
+  name                 String
+  createdAt            DateTime              @default(now())
+  guests               Guest[]
+  budgetItems          BudgetItem[]
+  honeymoonItems       HoneymoonItem[]
+  timelineItems        TimelineItem[]
+  dashboardCards       DashboardCard[]
+  dashboardTasks       DashboardTask[]
+  weddingTables        WeddingTable[]
+  passwordResetTokens  PasswordResetToken[]
+}
+
+model PasswordResetToken {
+  id        Int      @id @default(autoincrement())
+  token     String   @unique
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
 enum GuestStatus {
   pending
   confirmed
@@ -21,15 +48,19 @@ enum GuestSide {
 }
 
 model Guest {
-  id             Int         @id @default(autoincrement())
+  id             Int           @id @default(autoincrement())
   name           String
-  status         GuestStatus @default(pending)
-  side           GuestSide   @default(both)
-  plusOneAllowed Boolean     @default(false)
+  status         GuestStatus   @default(pending)
+  side           GuestSide     @default(both)
+  plusOneAllowed Boolean       @default(false)
   notes          String?
-  createdAt      DateTime    @default(now())
+  createdAt      DateTime      @default(now())
   tableId        Int?
   table          WeddingTable? @relation(fields: [tableId], references: [id])
+  userId         Int?
+  user           User?         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 enum BudgetStatus {
@@ -63,12 +94,16 @@ model BudgetItem {
   id          Int            @id @default(autoincrement())
   title       String
   cost        Float
-  advancePaid Float         @default(0)
+  advancePaid Float          @default(0)
   category    BudgetCategory @default(other)
   subcategory String?
   status      BudgetStatus   @default(pending)
   notes       String?
   createdAt   DateTime       @default(now())
+  userId      Int?
+  user        User?          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 enum HoneymoonCategory {
@@ -91,15 +126,19 @@ enum HoneymoonStatus {
 }
 
 model HoneymoonItem {
-  id          Int              @id @default(autoincrement())
+  id          Int               @id @default(autoincrement())
   title       String
   category    HoneymoonCategory @default(other)
-  cost        Float            @default(0)
-  advancePaid Float            @default(0)
-  status      HoneymoonStatus  @default(planned)
+  cost        Float             @default(0)
+  advancePaid Float             @default(0)
+  status      HoneymoonStatus   @default(planned)
   date        DateTime?
   notes       String?
-  createdAt   DateTime         @default(now())
+  createdAt   DateTime          @default(now())
+  userId      Int?
+  user        User?             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 enum TimelineType {
@@ -134,6 +173,10 @@ model TimelineItem {
   order     Int              @default(0)
   isCurrent Boolean          @default(false)
   createdAt DateTime         @default(now())
+  userId    Int?
+  user      User?            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 enum DashboardStatus {
@@ -145,7 +188,7 @@ enum DashboardStatus {
 
 model DashboardCard {
   id        Int             @id @default(autoincrement())
-  key       String          @unique
+  key       String
   title     String
   status    DashboardStatus @default(Next)
   text      String
@@ -154,6 +197,11 @@ model DashboardCard {
   path      String?
   order     Int             @default(0)
   createdAt DateTime        @default(now())
+  userId    Int?
+  user      User?           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, key])
+  @@index([userId])
 }
 
 model DashboardTask {
@@ -163,6 +211,10 @@ model DashboardTask {
   status    DashboardStatus @default(Next)
   order     Int             @default(0)
   createdAt DateTime        @default(now())
+  userId    Int?
+  user      User?           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model WeddingTable {
@@ -172,6 +224,9 @@ model WeddingTable {
   order     Int      @default(0)
   capacity  Int      @default(10)
   createdAt DateTime @default(now())
-
+  userId    Int?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
   guests    Guest[]
+
+  @@index([userId])
 }

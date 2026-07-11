@@ -7,55 +7,41 @@ const {
 
 const { budgetItemSchema } = require("../validators/budgetValidator");
 
-const getBudget = async (req, res) => {
+const getBudget = async (req, res, next) => {
   try {
-    const items = await getBudgetItems();
-
+    const items = await getBudgetItems(req.user.userId);
     res.json(items);
   } catch (error) {
-    res.status(500).json({
-      error: "Failed to fetch budget items",
-    });
+    next(error);
   }
 };
 
-const createBudget = async (req, res) => {
+const createBudget = async (req, res, next) => {
   try {
     const data = budgetItemSchema.parse(req.body);
-
-    const item = await createBudgetItem(data);
-
+    const item = await createBudgetItem(req.user.userId, data);
     res.status(201).json(item);
   } catch (error) {
-    res.status(400).json({
-      error: error.errors?.[0]?.message || error.message,
-    });
+    next(error);
   }
 };
 
-const updateBudget = async (req, res) => {
+const updateBudget = async (req, res, next) => {
   try {
     const data = budgetItemSchema.partial().parse(req.body);
-
-    const item = await updateBudgetItem(req.params.id, data);
-
+    const item = await updateBudgetItem(req.user.userId, req.params.id, data);
     res.json(item);
   } catch (error) {
-    res.status(400).json({
-      error: error.errors?.[0]?.message || error.message,
-    });
+    next(error);
   }
 };
 
-const deleteBudget = async (req, res) => {
+const deleteBudget = async (req, res, next) => {
   try {
-    const item = await deleteBudgetItem(req.params.id);
-
+    const item = await deleteBudgetItem(req.user.userId, req.params.id);
     res.json(item);
   } catch (error) {
-    res.status(500).json({
-      error: "Failed to delete budget item",
-    });
+    next(error);
   }
 };
 

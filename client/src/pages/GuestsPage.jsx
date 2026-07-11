@@ -11,8 +11,10 @@ import GuestList from "../components/guests/GuestList.jsx";
 import GuestForm from "../components/guests/GuestForm.jsx";
 import GuestFilters from "../components/guests/GuestFilters.jsx";
 import DeleteConfirmationModal from "../components/guests/DeleteConfirmationModal.jsx";
+import { useTranslation } from "../context/PreferencesContext.jsx";
 
 function GuestsPage() {
+  const { t } = useTranslation();
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("all");
   const [sortBy, setSortBy] = useState("newest");
@@ -75,7 +77,7 @@ function GuestsPage() {
       setGuests(data);
     } catch (error) {
       console.error(error);
-      showError("Could not load guests.");
+      showError(t("guests.loadError"));
     } finally {
       setIsFetching(false);
     }
@@ -102,10 +104,10 @@ function GuestsPage() {
       setSide("both");
       setPlusOneAllowed(false);
       setNotes("");
-      showSuccess("Guest added successfully ❤️");
+      showSuccess(t("guests.addSuccess"));
     } catch (error) {
       console.error(error);
-      showError("Could not add guest. Please try again.");
+      showError(t("guests.addError"));
     } finally {
       setLoading(false);
     }
@@ -121,10 +123,10 @@ function GuestsPage() {
         prev.map((item) => (item.id === updatedGuest.id ? updatedGuest : item)),
       );
 
-      showSuccess("Guest status updated");
+      showSuccess(t("guests.statusUpdateSuccess"));
     } catch (error) {
       console.error(error);
-      showError("Could not update guest status.");
+      showError(t("guests.statusUpdateError"));
     }
   };
 
@@ -140,10 +142,10 @@ function GuestsPage() {
 
       setGuests((prev) => prev.filter((item) => item.id !== guestToDelete.id));
 
-      showSuccess("Guest deleted");
+      showSuccess(t("guests.deleteSuccess"));
     } catch (error) {
       console.error(error);
-      showError("Could not delete guest.");
+      showError(t("guests.deleteError"));
     } finally {
       setGuestToDelete(null);
       setIsDeleteModalOpen(false);
@@ -181,10 +183,10 @@ function GuestsPage() {
         prev.map((item) => (item.id === updatedGuest.id ? updatedGuest : item)),
       );
 
-      showSuccess("Guest updated");
+      showSuccess(t("guests.updateSuccess"));
     } catch (error) {
       console.error(error);
-      showError("Could not update guest.");
+      showError(t("guests.updateError"));
     }
   };
 
@@ -204,52 +206,49 @@ function GuestsPage() {
 
       <section className="flex flex-col gap-6">
         <div>
-          <p className="text-sm font-medium text-gray-500">
-            Our Wedding guests
+          <p className="text-sm font-medium wos-text-muted">
+            {t("guests.eyebrow")}
           </p>
 
-          <h1 className="text-4xl font-bold tracking-tight mt-1">
-            Our guest list 📝
+          <h1 className="text-4xl font-bold tracking-tight mt-1 wos-text-heading">
+            {t("guests.title")}
           </h1>
 
-          <p className="text-gray-500 mt-2 max-w-2xl">
-            Let's keep track of everyone we’re inviting, who has confirmed, and
-            who is still pending.
-          </p>
+          <p className="wos-text-muted mt-2 max-w-2xl">{t("guests.subtitle")}</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-5 gap-5">
           {[
             {
-              label: "Total guests",
+              label: t("guests.totalGuests"),
               value: totalGuests,
               icon: "👥",
               color: "bg-[#fff0f3] text-[#d24d7a]",
             },
 
             {
-              label: "Confirmed",
+              label: t("status.confirmed"),
               value: confirmedGuests,
               icon: "✓",
               color: "bg-[#ecfbf1] text-[#2fa060]",
             },
 
             {
-              label: "Pending",
+              label: t("status.pending"),
               value: pendingGuests,
               icon: "⌛",
               color: "bg-[#fff7ea] text-[#e28a18]",
             },
 
             {
-              label: "Declined",
+              label: t("status.declined"),
               value: declinedGuests,
               icon: "×",
               color: "bg-[#fff0f1] text-[#f05252]",
             },
 
             {
-              label: "Not Sure",
+              label: t("guests.notSure"),
               value: notSureGuests,
               icon: "?",
               color: "bg-[#f3ebff] text-[#8258ff]",
@@ -290,7 +289,9 @@ function GuestsPage() {
                     {card.value}
                   </h2>
 
-                  <span className="text-xs text-[#b08f9b] mb-2">guests</span>
+                  <span className="text-xs text-[#b08f9b] mb-2">
+                    {t("common.guests")}
+                  </span>
                 </div>
               </div>
             </div>

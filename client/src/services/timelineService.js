@@ -1,38 +1,20 @@
-const API_URL = "http://localhost:5000";
+import { apiFetch } from "./api.js";
 
-export const fetchTimelineItems = async () => {
-  const response = await fetch(`${API_URL}/timeline`);
-  if (!response.ok) throw new Error("Failed to fetch timeline");
-  return response.json();
-};
+export const fetchTimelineItems = async () => apiFetch("/timeline");
 
-export const createTimelineItem = async (data) => {
-  const response = await fetch(`${API_URL}/timeline`, {
+export const createTimelineItem = async (data) =>
+  apiFetch("/timeline", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
 
-  if (!response.ok) throw new Error("Failed to create timeline item");
-  return response.json();
-};
-
-export const updateTimelineItem = async (id, data) => {
-  const response = await fetch(`${API_URL}/timeline/${id}`, {
+export const updateTimelineItem = async (id, data) =>
+  apiFetch(`/timeline/${id}`, {
     method: "PATCH",
-    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
 
-  if (!response.ok) throw new Error("Failed to update timeline item");
-  return response.json();
-};
-
-export const deleteTimelineItem = async (id) => {
-  const response = await fetch(`${API_URL}/timeline/${id}`, {
+export const deleteTimelineItem = async (id) =>
+  apiFetch(`/timeline/${id}`, {
     method: "DELETE",
   });
-
-  if (!response.ok) throw new Error("Failed to delete timeline item");
-  return response.json();
-};

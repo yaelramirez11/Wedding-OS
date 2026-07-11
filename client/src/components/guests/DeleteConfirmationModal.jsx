@@ -1,4 +1,8 @@
+import { useTranslation } from "../../context/PreferencesContext.jsx";
+
 function DeleteConfirmationModal({ open, guest, onClose, onConfirm }) {
+  const { t } = useTranslation();
+
   if (!open) return null;
 
   return (
@@ -8,14 +12,14 @@ function DeleteConfirmationModal({ open, guest, onClose, onConfirm }) {
           ❤️
         </div>
 
-        <h2 className="text-2xl font-semibold text-gray-950">
-          Remove guest? 🆑
+        <h2 className="text-2xl font-semibold wos-text-heading">
+          {t("guests.deleteModalTitle")}
         </h2>
 
-        <p className="text-gray-500 mt-3 leading-relaxed">
-          My Love, are you sure you want to remove{" "}
-          <span className="font-semibold text-black">{guest?.name}</span> from
-          our guest list? 🥹
+        <p className="wos-text-muted mt-3 leading-relaxed">
+          {t("guests.deleteModalMessage")}{" "}
+          <span className="font-semibold wos-text-heading">{guest?.name}</span>{" "}
+          🥹
         </p>
 
         <div className="flex flex-col sm:flex-row gap-3 mt-8">
@@ -24,7 +28,7 @@ function DeleteConfirmationModal({ open, guest, onClose, onConfirm }) {
             onClick={onClose}
             className="flex-1 border border-gray-200 rounded-2xl py-3 font-medium hover:bg-gray-50 active:scale-95 transition"
           >
-            Keep guest 🥳
+            {t("guests.deleteModalKeep")}
           </button>
 
           <button
@@ -32,7 +36,7 @@ function DeleteConfirmationModal({ open, guest, onClose, onConfirm }) {
             onClick={onConfirm}
             className="flex-1 bg-red-500 text-white rounded-2xl py-3 font-medium hover:bg-red-600 active:scale-95 transition"
           >
-            Remove 🗑️
+            {t("guests.deleteModalRemove")}
           </button>
         </div>
       </div>

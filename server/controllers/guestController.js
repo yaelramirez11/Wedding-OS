@@ -10,55 +10,45 @@ const {
   updateGuestSchema,
 } = require("../validators/guestValidator");
 
-const getGuests = async (req, res) => {
+const getGuests = async (req, res, next) => {
   try {
-    const guests = await getAllGuests();
-
+    const guests = await getAllGuests(req.user.userId);
     res.json(guests);
   } catch (error) {
-    res.status(500).json({
-      error: "Failed to fetch guests",
-    });
+    next(error);
   }
 };
 
-const createGuestHandler = async (req, res) => {
+const createGuestHandler = async (req, res, next) => {
   try {
     const validatedData = createGuestSchema.parse(req.body);
-
-    const guest = await createGuest(validatedData);
-
+    const guest = await createGuest(req.user.userId, validatedData);
     res.status(201).json(guest);
   } catch (error) {
-    res.status(400).json({
-      error: error.errors?.[0]?.message || error.message,
-    });
+    next(error);
   }
 };
 
-const updateGuestHandler = async (req, res) => {
+const updateGuestHandler = async (req, res, next) => {
   try {
     const validatedData = updateGuestSchema.parse(req.body);
-
-    const guest = await updateGuest(req.params.id, validatedData);
-
+    const guest = await updateGuest(
+      req.user.userId,
+      req.params.id,
+      validatedData,
+    );
     res.json(guest);
   } catch (error) {
-    res.status(400).json({
-      error: error.errors?.[0]?.message || error.message,
-    });
+    next(error);
   }
 };
 
-const deleteGuestHandler = async (req, res) => {
+const deleteGuestHandler = async (req, res, next) => {
   try {
-    const deletedGuest = await deleteGuest(req.params.id);
-
+    const deletedGuest = await deleteGuest(req.user.userId, req.params.id);
     res.json(deletedGuest);
   } catch (error) {
-    res.status(500).json({
-      error: "Failed to delete guest",
-    });
+    next(error);
   }
 };
 

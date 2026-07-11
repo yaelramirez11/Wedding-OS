@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import {
   fetchHoneymoonItems,
@@ -6,44 +6,23 @@ import {
   updateHoneymoonItem,
   deleteHoneymoonItem,
 } from "../services/honeymoonService";
+import { useTranslation } from "../context/PreferencesContext.jsx";
+import {
+  formatLocaleDate,
+  formatMoney,
+  getHoneymoonCategories,
+  getHoneymoonStatusConfig,
+  findHoneymoonCategory,
+  toDateInputValue,
+} from "../i18n/helpers.js";
 
 import DeleteHoneymoonModal from "../components/honeymoon/DeleteHoneymoonModal.jsx";
 
-const categories = [
-  { value: "hotel", label: "Hotel", icon: "🏨" },
-  { value: "flight", label: "Flight", icon: "✈️" },
-  { value: "transportation", label: "Transportation", icon: "🚗" },
-  { value: "activities", label: "Activities", icon: "🌅" },
-  { value: "food", label: "Food", icon: "🍽️" },
-  { value: "documents", label: "Documents", icon: "📄" },
-  { value: "shopping", label: "Shopping", icon: "🛍️" },
-  { value: "other", label: "Other", icon: "♡" },
-];
-
-const statusConfig = {
-  notPlanned: {
-    label: "Not Planned",
-    className: "bg-gray-100 text-gray-600",
-  },
-  planned: {
-    label: "Planned",
-    className: "bg-purple-100 text-purple-700",
-  },
-  booked: {
-    label: "Booked",
-    className: "bg-blue-100 text-blue-700",
-  },
-  advancePaid: {
-    label: "Advance Paid",
-    className: "bg-amber-100 text-amber-700",
-  },
-  paid: {
-    label: "Paid",
-    className: "bg-green-100 text-green-700",
-  },
-};
-
 function HoneymoonPage() {
+  const { t, language } = useTranslation();
+  const categories = useMemo(() => getHoneymoonCategories(t), [t]);
+  const statusConfig = useMemo(() => getHoneymoonStatusConfig(t), [t]);
+
   const [items, setItems] = useState([]);
 
   const [title, setTitle] = useState("");
@@ -107,24 +86,6 @@ function HoneymoonPage() {
     }, 3000);
   };
 
-  const formatMoney = (value) => {
-    return `$${Number(value || 0).toLocaleString()} MXN`;
-  };
-
-  const formatDate = (value) => {
-    if (!value) return "No date yet";
-
-    return new Date(value).toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
-  };
-
-  const getCategory = (value) => {
-    return categories.find((item) => item.value === value) || categories[7];
-  };
-
   const getNormalizedPaymentData = (costValue, advanceValue, statusValue) => {
     const normalizedCost = Number(costValue) || 0;
     let normalizedAdvance = Number(advanceValue) || 0;
@@ -162,7 +123,7 @@ function HoneymoonPage() {
       setItems(data);
     } catch (error) {
       console.error(error);
-      showError("Could not load honeymoon plans.");
+      showError(t("honeymoon.loadError"));
     }
   };
 
@@ -194,10 +155,10 @@ function HoneymoonPage() {
       setDate("");
       setNotes("");
 
-      showSuccess("Plan added successfully 💕");
+      showSuccess(t("honeymoon.addSuccess"));
     } catch (error) {
       console.error(error);
-      showError("Could not add plan.");
+      showError(t("honeymoon.addError"));
     } finally {
       setLoading(false);
     }
@@ -219,10 +180,10 @@ function HoneymoonPage() {
         ),
       );
 
-      showSuccess("Plan status updated");
+      showSuccess(t("honeymoon.statusUpdateSuccess"));
     } catch (error) {
       console.error(error);
-      showError("Could not update plan.");
+      showError(t("honeymoon.updateError"));
     }
   };
 
@@ -241,10 +202,10 @@ function HoneymoonPage() {
         prev.filter((current) => current.id !== itemToDelete.id),
       );
 
-      showSuccess("Plan deleted");
+      showSuccess(t("honeymoon.deleteSuccess"));
     } catch (error) {
       console.error(error);
-      showError("Could not delete plan.");
+      showError(t("honeymoon.deleteError"));
     } finally {
       setItemToDelete(null);
       setIsDeleteModalOpen(false);
@@ -260,7 +221,7 @@ function HoneymoonPage() {
       cost: item.cost,
       advancePaid: item.advancePaid || 0,
       status: item.status,
-      date: item.date?.split("T")[0] || "",
+      date: toDateInputValue(item.date),
       notes: item.notes || "",
     });
   };
@@ -293,10 +254,10 @@ function HoneymoonPage() {
       );
 
       cancelEdit();
-      showSuccess("Plan updated");
+      showSuccess(t("honeymoon.updateSuccess"));
     } catch (error) {
       console.error(error);
-      showError("Could not update plan.");
+      showError(t("honeymoon.updateError"));
     }
   };
 
@@ -330,16 +291,19 @@ function HoneymoonPage() {
       return new Date(b.createdAt) - new Date(a.createdAt);
     });
 
+  const formatDate = (value) =>
+    formatLocaleDate(value, language, t("honeymoon.noDateYet"));
+
   return (
     <div className="space-y-8">
       {successMessage && (
-        <div className="rounded-2xl bg-green-100 text-green-700 px-5 py-4 text-sm font-medium">
+        <div className="rounded-2xl px-5 py-4 text-sm font-medium wos-alert-success">
           {successMessage}
         </div>
       )}
 
       {errorMessage && (
-        <div className="rounded-2xl bg-red-100 text-red-700 px-5 py-4 text-sm font-medium">
+        <div className="rounded-2xl px-5 py-4 text-sm font-medium wos-alert-error">
           {errorMessage}
         </div>
       )}
@@ -350,26 +314,37 @@ function HoneymoonPage() {
 
         <div className="relative z-10 max-w-3xl">
           <p className="text-[#8d7380] text-sm font-medium mb-5">
-            Our honeymoon planner ✈️
+            {t("honeymoon.eyebrow")}
           </p>
 
-          <h1 className="text-[#38131f] text-5xl lg:text-6xl font-semibold leading-[1.05] tracking-tight">
-            Let’s plan the trip we’ll remember forever 💘
+          <h1 className="wos-text-heading text-5xl lg:text-6xl font-semibold leading-[1.05] tracking-tight">
+            {t("honeymoon.title")}
           </h1>
 
-          <p className="text-[#7f7079] text-lg mt-6 leading-relaxed max-w-2xl">
-            Hotel, flights, reservations, activities, documents and all the
-            little romantic details for our first adventure after the wedding.
+          <p className="wos-text-muted text-lg mt-6 leading-relaxed max-w-2xl">
+            {t("honeymoon.subtitle")}
           </p>
         </div>
       </section>
 
       <section className="grid grid-cols-1 md:grid-cols-4 gap-5">
         {[
-          { label: "Total trip cost", value: formatMoney(total), icon: "💌" },
-          { label: "Paid", value: formatMoney(paid), icon: "✓" },
-          { label: "Advances", value: formatMoney(advances), icon: "💙" },
-          { label: "Remaining", value: formatMoney(remaining), icon: "🌙" },
+          {
+            label: t("honeymoon.totalTripCost"),
+            value: formatMoney(total, t, language),
+            icon: "💌",
+          },
+          { label: t("honeymoon.paid"), value: formatMoney(paid, t, language), icon: "✓" },
+          {
+            label: t("honeymoon.advances"),
+            value: formatMoney(advances, t, language),
+            icon: "💙",
+          },
+          {
+            label: t("honeymoon.remaining"),
+            value: formatMoney(remaining, t, language),
+            icon: "🌙",
+          },
         ].map((card) => (
           <div key={card.label} className="wos-card p-6">
             <div className="h-12 w-12 rounded-full bg-[#fff0f3] text-[#660033] flex items-center justify-center text-xl mb-4">
@@ -378,7 +353,7 @@ function HoneymoonPage() {
 
             <p className="text-sm text-[#8d7380]">{card.label}</p>
 
-            <h2 className="text-2xl font-bold text-[#241c21] mt-2">
+            <h2 className="text-2xl font-bold wos-text-heading mt-2">
               {card.value}
             </h2>
           </div>
@@ -389,7 +364,7 @@ function HoneymoonPage() {
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search plans..."
+          placeholder={t("honeymoon.searchPlaceholder")}
           className="wos-input"
         />
 
@@ -399,7 +374,7 @@ function HoneymoonPage() {
             onChange={(e) => setStatusFilter(e.target.value)}
             className="wos-input"
           >
-            <option value="all">All statuses</option>
+            <option value="all">{t("honeymoon.allStatuses")}</option>
 
             {Object.entries(statusConfig).map(([key, value]) => (
               <option key={key} value={key}>
@@ -413,11 +388,11 @@ function HoneymoonPage() {
             onChange={(e) => setCategoryFilter(e.target.value)}
             className="wos-input"
           >
-            <option value="all">All categories</option>
+            <option value="all">{t("honeymoon.allCategories")}</option>
 
-            {categories.map((category) => (
-              <option key={category.value} value={category.value}>
-                {category.label}
+            {categories.map((categoryItem) => (
+              <option key={categoryItem.value} value={categoryItem.value}>
+                {categoryItem.label}
               </option>
             ))}
           </select>
@@ -427,10 +402,10 @@ function HoneymoonPage() {
             onChange={(e) => setSortBy(e.target.value)}
             className="wos-input"
           >
-            <option value="newest">Newest</option>
-            <option value="oldest">Oldest</option>
-            <option value="highest">Highest cost</option>
-            <option value="lowest">Lowest cost</option>
+            <option value="newest">{t("sort.newest")}</option>
+            <option value="oldest">{t("sort.oldest")}</option>
+            <option value="highest">{t("sort.highest")}</option>
+            <option value="lowest">{t("sort.lowest")}</option>
           </select>
         </div>
       </section>
@@ -444,19 +419,19 @@ function HoneymoonPage() {
 
           <div className="relative z-10 space-y-4">
             <div>
-              <h2 className="text-2xl font-serif font-semibold text-[#38131f]">
-                Add honeymoon plan 💕
+              <h2 className="text-2xl font-serif font-semibold wos-text-heading">
+                {t("honeymoon.addPlan")}
               </h2>
 
-              <p className="text-sm text-[#7f7079] mt-2">
-                Add reservations, ideas, payments or details for our trip.
+              <p className="text-sm wos-text-muted mt-2">
+                {t("honeymoon.addPlanHint")}
               </p>
             </div>
 
             <input
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="Plan title"
+              placeholder={t("honeymoon.planTitle")}
               className="wos-input"
             />
 
@@ -477,7 +452,7 @@ function HoneymoonPage() {
               onChange={(e) => setCost(e.target.value)}
               type="number"
               min="0"
-              placeholder="Cost"
+              placeholder={t("honeymoon.cost")}
               className="wos-input"
             />
 
@@ -486,7 +461,7 @@ function HoneymoonPage() {
               onChange={(e) => setAdvancePaid(e.target.value)}
               type="number"
               min="0"
-              placeholder="Advance paid"
+              placeholder={t("honeymoon.advancePaid")}
               className="wos-input"
             />
 
@@ -495,11 +470,11 @@ function HoneymoonPage() {
               onChange={(e) => setStatus(e.target.value)}
               className="wos-input"
             >
-              <option value="notPlanned">Not Planned</option>
-              <option value="planned">Planned</option>
-              <option value="booked">Booked</option>
-              <option value="advancePaid">Advance Paid</option>
-              <option value="paid">Paid</option>
+              {Object.entries(statusConfig).map(([key, value]) => (
+                <option key={key} value={key}>
+                  {value.label}
+                </option>
+              ))}
             </select>
 
             <input
@@ -512,7 +487,7 @@ function HoneymoonPage() {
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="Notes, darling..."
+              placeholder={t("common.notesPlaceholder")}
               rows={4}
               maxLength={300}
               className="wos-input resize-none"
@@ -523,7 +498,7 @@ function HoneymoonPage() {
               disabled={loading || !title.trim()}
               className="w-full wos-button"
             >
-              {loading ? "Adding..." : "Add Plan"}
+              {loading ? t("common.adding") : t("honeymoon.addPlanBtn")}
             </button>
           </div>
         </form>
@@ -531,21 +506,21 @@ function HoneymoonPage() {
         <div className="space-y-4">
           {filteredItems.length === 0 ? (
             <div className="wos-card p-10 text-center">
-              <h2 className="text-2xl font-serif font-semibold text-[#38131f]">
+              <h2 className="text-2xl font-serif font-semibold wos-text-heading">
                 {items.length === 0
-                  ? "No honeymoon plans yet"
-                  : "No matching plans"}
+                  ? t("honeymoon.noPlans")
+                  : t("honeymoon.noMatchingPlans")}
               </h2>
 
-              <p className="text-[#7f7079] mt-2">
+              <p className="wos-text-muted mt-2">
                 {items.length === 0
-                  ? "Add our first reservation, idea or activity."
-                  : "Try changing the search or filters."}
+                  ? t("honeymoon.noPlansHint")
+                  : t("honeymoon.noMatchingHint")}
               </p>
             </div>
           ) : (
             filteredItems.map((item) => {
-              const categoryData = getCategory(item.category);
+              const categoryData = findHoneymoonCategory(t, item.category);
               const currentStatus =
                 statusConfig[item.status] || statusConfig.planned;
               const isEditing = editingId === item.id;
@@ -577,12 +552,12 @@ function HoneymoonPage() {
                             }
                             className="wos-input"
                           >
-                            {categories.map((category) => (
+                            {categories.map((categoryItem) => (
                               <option
-                                key={category.value}
-                                value={category.value}
+                                key={categoryItem.value}
+                                value={categoryItem.value}
                               >
-                                {category.icon} {category.label}
+                                {categoryItem.icon} {categoryItem.label}
                               </option>
                             ))}
                           </select>
@@ -623,11 +598,11 @@ function HoneymoonPage() {
                             }
                             className="wos-input"
                           >
-                            <option value="notPlanned">Not Planned</option>
-                            <option value="planned">Planned</option>
-                            <option value="booked">Booked</option>
-                            <option value="advancePaid">Advance Paid</option>
-                            <option value="paid">Paid</option>
+                            {Object.entries(statusConfig).map(([key, value]) => (
+                              <option key={key} value={key}>
+                                {value.label}
+                              </option>
+                            ))}
                           </select>
 
                           <input
@@ -660,15 +635,15 @@ function HoneymoonPage() {
                               onClick={() => saveEdit(item)}
                               className="wos-button"
                             >
-                              Save
+                              {t("common.save")}
                             </button>
 
                             <button
                               type="button"
                               onClick={cancelEdit}
-                              className="text-sm font-medium text-gray-700 border border-[#eadde2] px-4 py-2 rounded-2xl hover:bg-[#fff8fa] transition"
+                              className="wos-secondary-btn"
                             >
-                              Cancel
+                              {t("common.cancel")}
                             </button>
                           </div>
                         </div>
@@ -679,25 +654,26 @@ function HoneymoonPage() {
                           </div>
 
                           <div>
-                            <h2 className="text-lg font-semibold text-[#38131f]">
+                            <h2 className="text-lg font-semibold wos-text-heading">
                               {item.title}
                             </h2>
 
-                            <p className="text-sm text-[#7f7079] mt-1">
+                            <p className="text-sm wos-text-muted mt-1">
                               {categoryData.label} · {formatDate(item.date)} ·{" "}
-                              {formatMoney(item.cost)}
+                              {formatMoney(item.cost, t, language)}
                             </p>
 
                             {item.advancePaid > 0 && (
-                              <p className="text-sm text-[#7f7079] mt-1">
-                                Advance paid: {formatMoney(item.advancePaid)} ·
-                                Remaining:{" "}
-                                {formatMoney(item.cost - item.advancePaid)}
+                              <p className="text-sm wos-text-muted mt-1">
+                                {t("budget.advancePaidLabel")}:{" "}
+                                {formatMoney(item.advancePaid, t, language)} ·{" "}
+                                {t("budget.remaining")}:{" "}
+                                {formatMoney(item.cost - item.advancePaid, t, language)}
                               </p>
                             )}
 
                             {item.notes && (
-                              <p className="text-sm text-[#7f7079] mt-3 bg-[#fff8fa] rounded-2xl px-4 py-3">
+                              <p className="text-sm wos-text-muted mt-3 bg-[#fff8fa] rounded-2xl px-4 py-3">
                                 {item.notes}
                               </p>
                             )}
@@ -718,21 +694,21 @@ function HoneymoonPage() {
                           <select
                             value={item.status}
                             onChange={(e) => changeStatus(item, e.target.value)}
-                            className="text-sm font-medium text-gray-700 border border-[#eadde2] px-4 py-2 rounded-2xl bg-white hover:bg-[#fff8fa] transition outline-none"
+                            className="text-sm font-medium wos-text-heading border border-[#eadde2] px-4 py-2 rounded-2xl bg-white hover:bg-[#fff8fa] transition outline-none"
                           >
-                            <option value="notPlanned">Not Planned</option>
-                            <option value="planned">Planned</option>
-                            <option value="booked">Booked</option>
-                            <option value="advancePaid">Advance Paid</option>
-                            <option value="paid">Paid</option>
+                            {Object.entries(statusConfig).map(([key, value]) => (
+                              <option key={key} value={key}>
+                                {value.label}
+                              </option>
+                            ))}
                           </select>
 
                           <button
                             type="button"
                             onClick={() => startEdit(item)}
-                            className="text-sm font-medium text-gray-700 border border-[#eadde2] px-4 py-2 rounded-2xl hover:bg-[#fff8fa] active:scale-95 transition"
+                            className="wos-secondary-btn active:scale-95 transition"
                           >
-                            Edit
+                            {t("common.edit")}
                           </button>
 
                           <button
@@ -740,7 +716,7 @@ function HoneymoonPage() {
                             onClick={() => removeItem(item)}
                             className="text-sm font-medium text-red-600 border border-red-100 px-4 py-2 rounded-2xl hover:bg-red-50 active:scale-95 transition"
                           >
-                            Delete
+                            {t("common.delete")}
                           </button>
                         </>
                       )}

@@ -8,8 +8,10 @@ import {
   updateDashboardTask,
   createDashboardCard,
 } from "../services/dashboardService";
+import { useTranslation } from "../context/PreferencesContext.jsx";
 
 function DashboardPage() {
+  const { t } = useTranslation();
   const [categories, setCategories] = useState([]);
   const [tasks, setTasks] = useState([]);
 
@@ -135,8 +137,10 @@ function DashboardPage() {
   });
 
   const getStatusLabel = (status) => {
-    if (status === "InProgress") return "In Progress";
-
+    if (status === "InProgress") return t("status.inProgress");
+    if (status === "Live") return t("status.live");
+    if (status === "Next") return t("status.next");
+    if (status === "Done") return t("status.done");
     return status;
   };
 
@@ -148,14 +152,13 @@ function DashboardPage() {
 
         <div className="relative z-10 max-w-3xl">
           <p className="text-[#7f5f69] text-sm font-medium mb-6">
-            Our Wedding + Honeymoon Interface 🍯
+            {t("dashboard.heroEyebrow")}
           </p>
           <h1 className="text-[#38131f] text-5xl lg:text-6xl font-semibold leading-[1.05] tracking-tight">
-            One cozy place for everything we’re planning together.
+            {t("dashboard.heroTitle")}
           </h1>
           <p className="text-[#6e6168] text-lg mt-7 leading-relaxed max-w-2xl">
-            Guests, RSVP, budget, honeymoon ideas, documents, memories and all
-            the little details for our wedding season ❤️
+            {t("dashboard.heroSubtitle")}
           </p>
         </div>
       </section>
@@ -163,9 +166,9 @@ function DashboardPage() {
       <section className="wos-card rounded-[2rem] p-6 border border-[#eadde2] bg-white shadow-[0_12px_35px_rgba(80,40,55,0.06)]">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <p className="text-sm text-[#8d7380]">Dashboard modules</p>
+            <p className="text-sm text-[#8d7380]">{t("dashboard.modules")}</p>
             <h2 className="text-3xl font-serif text-[#38131f] mt-2">
-              Add a new card
+              {t("dashboard.addCard")}
             </h2>
           </div>
 
@@ -174,7 +177,7 @@ function DashboardPage() {
             onClick={() => setShowCardForm(!showCardForm)}
             className="self-start sm:self-center text-xs font-sans font-semibold bg-[#38131f] text-white rounded-full px-4 py-2 hover:bg-opacity-90 transition shadow-sm shrink-0"
           >
-            {showCardForm ? "Close Form ✕" : "+ Add Card"}
+            {showCardForm ? t("common.closeForm") : t("dashboard.addCardBtn")}
           </button>
         </div>
 
@@ -187,19 +190,19 @@ function DashboardPage() {
               <input
                 value={newCardTitle}
                 onChange={(e) => setNewCardTitle(e.target.value)}
-                placeholder="Card title"
-                className="text-xs font-sans border border-[#eadde2] rounded-xl px-3 py-2.5 bg-white text-[#38131f] focus:outline-none focus:ring-1 focus:ring-[#38131f]"
+                placeholder={t("dashboard.cardTitle")}
+                className="wos-input text-xs"
                 required
               />
 
               <select
                 value={newCardStatus}
                 onChange={(e) => setNewCardStatus(e.target.value)}
-                className="text-xs font-sans border border-[#eadde2] rounded-xl px-3 py-2.5 bg-white text-[#38131f] focus:outline-none focus:ring-1 focus:ring-[#38131f] cursor-pointer"
+                className="wos-input text-xs cursor-pointer"
               >
-                <option value="Live">Live</option>
-                <option value="InProgress">In Progress</option>
-                <option value="Next">Next</option>
+                <option value="Live">{t("status.live")}</option>
+                <option value="InProgress">{t("status.inProgress")}</option>
+                <option value="Next">{t("status.next")}</option>
               </select>
             </div>
 
@@ -207,23 +210,23 @@ function DashboardPage() {
               <input
                 value={newCardIcon}
                 onChange={(e) => setNewCardIcon(e.target.value)}
-                placeholder="Icon"
-                className="text-xs font-sans border border-[#eadde2] rounded-xl px-3 py-2.5 bg-white text-[#38131f] focus:outline-none focus:ring-1 focus:ring-[#38131f]"
+                placeholder={t("dashboard.icon")}
+                className="wos-input text-xs"
               />
 
               <input
                 value={newCardPath}
                 onChange={(e) => setNewCardPath(e.target.value)}
-                placeholder="/dashboard/example"
-                className="text-xs font-sans border border-[#eadde2] rounded-xl px-3 py-2.5 bg-white text-[#38131f] focus:outline-none focus:ring-1 focus:ring-[#38131f]"
+                placeholder={t("dashboard.cardPathPlaceholder")}
+                className="wos-input text-xs"
               />
             </div>
 
             <input
               value={newCardText}
               onChange={(e) => setNewCardText(e.target.value)}
-              placeholder="Short card description..."
-              className="w-full text-xs font-sans border border-[#eadde2] rounded-xl px-3 py-2.5 bg-white text-[#38131f] focus:outline-none focus:ring-1 focus:ring-[#38131f]"
+              placeholder={t("dashboard.cardDescription")}
+              className="w-full wos-input text-xs"
               required
             />
 
@@ -232,7 +235,7 @@ function DashboardPage() {
                 type="submit"
                 className="text-xs font-sans font-semibold bg-emerald-600 text-white rounded-full px-5 py-2 hover:bg-opacity-90 transition shadow-sm"
               >
-                Save Card
+                {t("dashboard.saveCard")}
               </button>
             </div>
           </form>
@@ -278,9 +281,9 @@ function DashboardPage() {
                     }
                     className="text-xs font-sans font-semibold text-[#38131f] bg-[#fcf8f9] border border-[#eadde2] rounded-full pl-3 pr-7 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#38131f] cursor-pointer appearance-none text-center min-w-[105px]"
                   >
-                    <option value="Live">Live</option>
-                    <option value="InProgress">In Progress</option>
-                    <option value="Next">Next</option>
+                    <option value="Live">{t("status.live")}</option>
+                    <option value="InProgress">{t("status.inProgress")}</option>
+                    <option value="Next">{t("status.next")}</option>
                   </select>
                   <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[9px] text-[#38131f]/60 pointer-events-none">
                     ▼
@@ -299,7 +302,7 @@ function DashboardPage() {
                       href={card.path}
                       className="text-xs font-sans font-semibold text-[#38131f] text-opacity-80 hover:text-opacity-100 hover:underline transition tracking-tight"
                     >
-                      Take me there! →
+                      {t("dashboard.takeMeThere")}
                     </a>
                   </div>
                 )}
@@ -313,9 +316,11 @@ function DashboardPage() {
         <div className="wos-card rounded-[2rem] p-8 border border-[#eadde2] bg-white shadow-[0_12px_35px_rgba(80,40,55,0.06)]">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <p className="text-sm text-[#8d7380]">Planning progress</p>
+              <p className="text-sm text-[#8d7380]">
+                {t("dashboard.planningProgress")}
+              </p>
               <h2 className="text-3xl font-serif text-[#38131f] mt-2">
-                What we're working on
+                {t("dashboard.workingOn")}
               </h2>
             </div>
 
@@ -323,7 +328,7 @@ function DashboardPage() {
               onClick={() => setShowForm(!showForm)}
               className="self-start sm:self-center text-xs font-sans font-semibold bg-[#38131f] text-white rounded-full px-4 py-2 hover:bg-opacity-90 transition shadow-sm shrink-0"
             >
-              {showForm ? "Close Form ✕" : "+ Add Task"}
+              {showForm ? t("common.closeForm") : t("dashboard.addTask")}
             </button>
           </div>
 
@@ -336,7 +341,7 @@ function DashboardPage() {
                   : "text-[#8d7380] hover:text-[#38131f]"
               }`}
             >
-              Pending Tasks
+              {t("dashboard.pendingTasks")}
             </button>
 
             <button
@@ -347,7 +352,7 @@ function DashboardPage() {
                   : "text-[#8d7380] hover:text-[#38131f]"
               }`}
             >
-              Completed
+              {t("dashboard.completed")}
             </button>
           </div>
 
@@ -356,37 +361,37 @@ function DashboardPage() {
               onSubmit={handleAddTask}
               className="mt-6 p-5 border border-[#eadde2] bg-[#fffbfb] rounded-3xl space-y-4"
             >
-              <h4 className="text-sm font-semibold text-[#38131f]">
-                Create a new task
+              <h4 className="text-sm font-semibold wos-text-heading">
+                {t("dashboard.createTask")}
               </h4>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <input
                   type="text"
-                  placeholder="Task title (e.g. Catering)"
+                  placeholder={t("dashboard.taskTitle")}
                   value={newTitle}
                   onChange={(e) => setNewTitle(e.target.value)}
-                  className="text-xs font-sans border border-[#eadde2] rounded-xl px-3 py-2.5 bg-white text-[#38131f] focus:outline-none focus:ring-1 focus:ring-[#38131f]"
+                  className="wos-input text-xs"
                   required
                 />
 
                 <select
                   value={newStatus}
                   onChange={(e) => setNewStatus(e.target.value)}
-                  className="text-xs font-sans border border-[#eadde2] rounded-xl px-3 py-2.5 bg-white text-[#38131f] focus:outline-none focus:ring-1 focus:ring-[#38131f] cursor-pointer"
+                  className="wos-input text-xs cursor-pointer"
                 >
-                  <option value="InProgress">In Progress</option>
-                  <option value="Next">Next</option>
-                  <option value="Done">Done</option>
+                  <option value="InProgress">{t("status.inProgress")}</option>
+                  <option value="Next">{t("status.next")}</option>
+                  <option value="Done">{t("status.done")}</option>
                 </select>
               </div>
 
               <input
                 type="text"
-                placeholder="Short description..."
+                placeholder={t("dashboard.taskDescription")}
                 value={newDesc}
                 onChange={(e) => setNewDesc(e.target.value)}
-                className="w-full text-xs font-sans border border-[#eadde2] rounded-xl px-3 py-2.5 bg-white text-[#38131f] focus:outline-none focus:ring-1 focus:ring-[#38131f]"
+                className="w-full wos-input text-xs"
               />
 
               <div className="flex justify-end">
@@ -394,7 +399,7 @@ function DashboardPage() {
                   type="submit"
                   className="text-xs font-sans font-semibold bg-emerald-600 text-white rounded-full px-5 py-2 hover:bg-opacity-90 transition shadow-sm"
                 >
-                  Save Task
+                  {t("dashboard.saveTask")}
                 </button>
               </div>
             </form>
@@ -454,52 +459,52 @@ function DashboardPage() {
                               : "bg-[#fff4e5] text-[#9d6a00]"
                         }`}
                       >
-                        <option value="Done">Done</option>
-                        <option value="InProgress">In Progress</option>
-                        <option value="Next">Next</option>
+                        <option value="Done">{t("status.done")}</option>
+                        <option value="InProgress">
+                          {t("status.inProgress")}
+                        </option>
+                        <option value="Next">{t("status.next")}</option>
                       </select>
                     </div>
                   </div>
                 );
               })
             ) : (
-              <p className="text-xs text-center text-[#8d7380] py-6 bg-gray-50/50 rounded-2xl border border-dashed border-gray-200">
-                No tasks found in this section.
+              <p className="text-xs text-center wos-text-muted py-6 bg-[#fff8fa]/50 rounded-2xl border border-dashed border-[#eadde2]">
+                {t("dashboard.noTasks")}
               </p>
             )}
           </div>
         </div>
 
         <div className="rounded-[2rem] bg-gradient-to-br from-[#fff8f8] to-[#f8eef1] border border-[#eadde2] p-8">
-          <p className="text-sm text-[#8d7380]">WeddingOS</p>
+          <p className="text-sm text-[#8d7380]">{t("common.appName")}</p>
 
           <h2 className="text-4xl font-serif text-[#38131f] mt-3 leading-tight">
-            Our little planning universe ❤️
+            Our beautiful planning universe ❤️
           </h2>
 
-          <p className="text-[#7f7079] mt-5 leading-relaxed">
-            One place for guests, budget, honeymoon plans, memories and all the
-            tiny details we don’t want to forget.
+          <p className="wos-text-muted mt-5 leading-relaxed">
+            {t("dashboard.universeSubtitle")}
           </p>
 
           <div className="mt-8 rounded-[1.75rem] bg-white/70 p-5 border border-white shadow-sm">
-            <p className="text-sm font-semibold text-[#38131f]">
-              Current milestone
+            <p className="text-sm font-semibold wos-text-heading">
+              {t("dashboard.currentMilestone")}
             </p>
 
             <p className="text-sm text-[#8d7380] mt-2">
-              Continue honeymoon planning and prepare our timeline 💗
+              {t("dashboard.currentMilestoneText")}
             </p>
           </div>
 
           <div className="mt-8 rounded-[1.75rem] bg-white/70 p-5 border border-white shadow-sm">
-            <p className="text-sm font-semibold text-[#38131f]">
-              Next milestone
+            <p className="text-sm font-semibold wos-text-heading">
+              {t("dashboard.nextMilestone")}
             </p>
 
             <p className="text-sm text-[#8d7380] mt-2">
-              Implement photos section and improve styling by adding our cute
-              lovely pictures 📸
+              {t("dashboard.nextMilestoneText")}
             </p>
           </div>
         </div>

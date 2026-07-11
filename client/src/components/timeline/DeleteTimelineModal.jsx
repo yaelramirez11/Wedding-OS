@@ -1,4 +1,8 @@
+import { useTranslation } from "../../context/PreferencesContext.jsx";
+
 function DeleteTimelineModal({ open, item, onClose, onConfirm }) {
+  const { t } = useTranslation();
+
   if (!open) return null;
 
   return (
@@ -8,23 +12,23 @@ function DeleteTimelineModal({ open, item, onClose, onConfirm }) {
           🛤️
         </div>
 
-        <h2 className="text-2xl font-semibold text-[#38131f]">
-          Delete timeline step?
+        <h2 className="text-2xl font-semibold wos-text-heading">
+          {t("timeline.deleteTitle")}
         </h2>
 
-        <p className="text-[#7f7079] mt-3">
-          Remove{" "}
-          <span className="font-semibold text-[#38131f]">{item?.title}</span>{" "}
-          from our timeline?
+        <p className="wos-text-muted mt-3">
+          {t("timeline.deleteMessage")}{" "}
+          <span className="font-semibold wos-text-heading">{item?.title}</span>{" "}
+          {t("timeline.deleteMessageSuffix")}
         </p>
 
         <div className="flex gap-3 mt-8">
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 border border-[#eadde2] rounded-2xl py-3 font-medium hover:bg-[#fff8fa] transition"
+            className="flex-1 wos-secondary-btn py-3 transition"
           >
-            Keep
+            {t("timeline.deleteKeep")}
           </button>
 
           <button
@@ -32,7 +36,7 @@ function DeleteTimelineModal({ open, item, onClose, onConfirm }) {
             onClick={onConfirm}
             className="flex-1 bg-red-500 text-white rounded-2xl py-3 font-medium hover:bg-red-600 transition"
           >
-            Delete
+            {t("common.delete")}
           </button>
         </div>
       </div>

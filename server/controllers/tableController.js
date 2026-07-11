@@ -12,81 +12,61 @@ const {
   assignGuestSchema,
 } = require("../validators/tableValidator");
 
-const getAllTables = async (req, res) => {
+const getAllTables = async (req, res, next) => {
   try {
-    const tables = await getTables();
-
+    const tables = await getTables(req.user.userId);
     res.json(tables);
-  } catch {
-    res.status(500).json({
-      error: "Failed to load tables",
-    });
+  } catch (error) {
+    next(error);
   }
 };
 
-const getGuestsWithoutTable = async (req, res) => {
+const getGuestsWithoutTable = async (req, res, next) => {
   try {
-    const guests = await getUnseatedGuests();
-
+    const guests = await getUnseatedGuests(req.user.userId);
     res.json(guests);
-  } catch {
-    res.status(500).json({
-      error: "Failed to load guests",
-    });
+  } catch (error) {
+    next(error);
   }
 };
 
-const createNewTable = async (req, res) => {
+const createNewTable = async (req, res, next) => {
   try {
     const data = createTableSchema.parse(req.body);
-
-    const table = await createTable(data);
-
+    const table = await createTable(req.user.userId, data);
     res.status(201).json(table);
   } catch (error) {
-    res.status(400).json({
-      error: error.message,
-    });
+    next(error);
   }
 };
 
-const updateExistingTable = async (req, res) => {
+const updateExistingTable = async (req, res, next) => {
   try {
-    const table = await updateTable(req.params.id, req.body);
-
+    const table = await updateTable(req.user.userId, req.params.id, req.body);
     res.json(table);
-  } catch {
-    res.status(400).json({
-      error: "Update failed",
-    });
+  } catch (error) {
+    next(error);
   }
 };
 
-const removeTable = async (req, res) => {
+const removeTable = async (req, res, next) => {
   try {
-    await deleteTable(req.params.id);
-
+    await deleteTable(req.user.userId, req.params.id);
     res.json({
       success: true,
     });
-  } catch {
-    res.status(400).json({
-      error: "Delete failed",
-    });
+  } catch (error) {
+    next(error);
   }
 };
 
-const moveGuest = async (req, res) => {
+const moveGuest = async (req, res, next) => {
   try {
     const data = assignGuestSchema.parse(req.body);
-
-    const guest = await assignGuestToTable(data);
-
+    const guest = await assignGuestToTable(req.user.userId, data);
     res.json(guest);
   } catch (error) {
-    res.status(400).json({
-      error: error.message,
-    });
+    next(error);
   }
 };
 

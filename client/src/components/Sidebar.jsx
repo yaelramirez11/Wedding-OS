@@ -1,16 +1,21 @@
 import { NavLink } from "react-router-dom";
 
-const navItems = [
-  { label: "Wedding Hub", path: "/dashboard/wedding-hub", icon: "⏱️" },
-  { label: "Dashboard", path: "/dashboard", icon: "❤️‍🔥 " },
-  { label: "Guests", path: "/dashboard/guests", icon: "🥂" },
-  { label: "Tables", path: "/dashboard/tables", icon: "🪑" },
-  { label: "Budget", path: "/dashboard/budget", icon: "💲" },
-  { label: "Honeymoon", path: "/dashboard/honeymoon", icon: "🏖️" },
-  { label: "Timeline", path: "/dashboard/timeline", icon: "🛣️ " },
-];
+import PreferenceControls from "./PreferenceControls.jsx";
+import { useTranslation } from "../context/PreferencesContext.jsx";
 
 function Sidebar() {
+  const { t } = useTranslation();
+
+  const navItems = [
+    { labelKey: "nav.weddingHub", path: "/dashboard/wedding-hub", icon: "⏱️" },
+    { labelKey: "nav.dashboard", path: "/dashboard", icon: "❤️‍🔥 " },
+    { labelKey: "nav.guests", path: "/dashboard/guests", icon: "🥂" },
+    { labelKey: "nav.tables", path: "/dashboard/tables", icon: "🪑" },
+    { labelKey: "nav.budget", path: "/dashboard/budget", icon: "💲" },
+    { labelKey: "nav.honeymoon", path: "/dashboard/honeymoon", icon: "🏖️" },
+    { labelKey: "nav.timeline", path: "/dashboard/timeline", icon: "🛣️ " },
+  ];
+
   return (
     <aside className="w-full lg:w-72 lg:h-screen lg:sticky lg:top-0 lg:self-start overflow-y-auto bg-[#660033] text-white p-4 sm:p-6 flex flex-col">
       <div className="flex lg:block items-center justify-between gap-4 mb-6 lg:mb-10">
@@ -21,13 +26,17 @@ function Sidebar() {
 
           <div>
             <h2 className="text-2xl lg:text-3xl font-serif tracking-tight">
-              WeddingOS
+              {t("common.appName")}
             </h2>
 
             <p className="hidden sm:block text-sm text-white/60 mt-2 leading-relaxed">
-              Let's plan beautifully, like you my heart.
+              {t("nav.tagline")}
             </p>
           </div>
+        </div>
+
+        <div className="lg:hidden">
+          <PreferenceControls compact />
         </div>
       </div>
 
@@ -46,15 +55,15 @@ function Sidebar() {
             }
           >
             <span className="text-lg">{item.icon}</span>
-            {item.label}
+            {t(item.labelKey)}
           </NavLink>
         ))}
       </nav>
 
       <div className="hidden lg:block mt-auto rounded-3xl wos-card/10 p-4 border border-white/15">
-        <p className="text-sm font-semibold">Next milestone</p>
+        <p className="text-sm font-semibold">{t("nav.nextMilestone")}</p>
         <p className="text-xs text-white/60 mt-1 leading-relaxed">
-          Start planning our honeymoon, darling.
+          {t("nav.nextMilestoneText")}
         </p>
       </div>
     </aside>

@@ -1,7 +1,27 @@
 const prisma = require("../lib/prisma");
+const { deleteOwned, updateOwned } = require("../lib/ownership");
+const { sortTimelineItems } = require("../lib/timelineSort");
 
-const getTimelineItems = () => {
+const recalculateTimelineOrders = async (userId) => {
+  const items = await prisma.timelineItem.findMany({
+    where: { userId },
+  });
+
+  const sortedItems = sortTimelineItems(items);
+
+  await prisma.$transaction(
+    sortedItems.map((item, index) =>
+      prisma.timelineItem.update({
+        where: { id: item.id },
+        data: { order: index + 1 },
+      }),
+    ),
+  );
+};
+
+const getTimelineItems = (userId) => {
   return prisma.timelineItem.findMany({
+    where: { userId },
     orderBy: [
       {
         date: "asc",
@@ -10,33 +30,46 @@ const getTimelineItems = () => {
         order: "asc",
       },
       {
-        createdAt: "desc",
+        createdAt: "asc",
       },
     ],
   });
 };
 
-const createTimelineItem = (data) => {
-  return prisma.timelineItem.create({
-    data,
+const createTimelineItem = async (userId, data) => {
+  const created = await prisma.timelineItem.create({
+    data: {
+      ...data,
+      userId,
+    },
+  });
+
+  await recalculateTimelineOrders(userId);
+
+  return prisma.timelineItem.findFirst({
+    where: {
+      id: created.id,
+      userId,
+    },
   });
 };
 
-const updateTimelineItem = (id, data) => {
-  return prisma.timelineItem.update({
+const updateTimelineItem = async (userId, id, data) => {
+  await updateOwned(prisma.timelineItem, userId, id, data);
+  await recalculateTimelineOrders(userId);
+
+  return prisma.timelineItem.findFirst({
     where: {
       id: Number(id),
+      userId,
     },
-    data,
   });
 };
 
-const deleteTimelineItem = (id) => {
-  return prisma.timelineItem.delete({
-    where: {
-      id: Number(id),
-    },
-  });
+const deleteTimelineItem = async (userId, id) => {
+  const deleted = await deleteOwned(prisma.timelineItem, userId, id);
+  await recalculateTimelineOrders(userId);
+  return deleted;
 };
 
 module.exports = {

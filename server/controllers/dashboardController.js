@@ -12,69 +12,61 @@ const {
   dashboardTaskSchema,
 } = require("../validators/dashboardValidator");
 
-const getCards = async (req, res) => {
+const getCards = async (req, res, next) => {
   try {
-    const cards = await getDashboardCards();
+    const cards = await getDashboardCards(req.user.userId);
     res.json(cards);
-  } catch {
-    res.status(500).json({ error: "Failed to fetch dashboard cards" });
+  } catch (error) {
+    next(error);
   }
 };
 
-const createCard = async (req, res) => {
+const createCard = async (req, res, next) => {
   try {
     const data = dashboardCardSchema.parse(req.body);
-    const card = await createDashboardCard(data);
+    const card = await createDashboardCard(req.user.userId, data);
     res.status(201).json(card);
   } catch (error) {
-    res.status(400).json({
-      error: error.errors?.[0]?.message || error.message,
-    });
+    next(error);
   }
 };
 
-const updateCard = async (req, res) => {
+const updateCard = async (req, res, next) => {
   try {
     const data = dashboardCardSchema.partial().parse(req.body);
-    const card = await updateDashboardCard(req.params.id, data);
+    const card = await updateDashboardCard(req.user.userId, req.params.id, data);
     res.json(card);
   } catch (error) {
-    res.status(400).json({
-      error: error.errors?.[0]?.message || error.message,
-    });
+    next(error);
   }
 };
 
-const getTasks = async (req, res) => {
+const getTasks = async (req, res, next) => {
   try {
-    const tasks = await getDashboardTasks();
+    const tasks = await getDashboardTasks(req.user.userId);
     res.json(tasks);
-  } catch {
-    res.status(500).json({ error: "Failed to fetch dashboard tasks" });
+  } catch (error) {
+    next(error);
   }
 };
 
-const createTask = async (req, res) => {
+const createTask = async (req, res, next) => {
   try {
     const data = dashboardTaskSchema.parse(req.body);
-    const task = await createDashboardTask(data);
+    const task = await createDashboardTask(req.user.userId, data);
     res.status(201).json(task);
   } catch (error) {
-    res.status(400).json({
-      error: error.errors?.[0]?.message || error.message,
-    });
+    next(error);
   }
 };
 
-const updateTask = async (req, res) => {
+const updateTask = async (req, res, next) => {
   try {
     const data = dashboardTaskSchema.partial().parse(req.body);
-    const task = await updateDashboardTask(req.params.id, data);
+    const task = await updateDashboardTask(req.user.userId, req.params.id, data);
     res.json(task);
   } catch (error) {
-    res.status(400).json({
-      error: error.errors?.[0]?.message || error.message,
-    });
+    next(error);
   }
 };
 
