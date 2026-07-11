@@ -11,6 +11,7 @@ const createTableSchema = z.object({
 const assignGuestSchema = z.object({
   guestId: z.number().int(),
   tableId: z.number().int().nullable(),
+  seatIndex: z.number().int().min(0).nullable().optional(),
 });
 
 module.exports = {

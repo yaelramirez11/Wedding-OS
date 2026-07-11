@@ -404,6 +404,28 @@ body,
   transform: scale(0.98);
 }
 
+.wos-banquet-seat-target {
+  cursor: pointer;
+  border-color: #660033;
+  color: #660033;
+  background: rgba(255, 240, 243, 0.75);
+}
+
+.wos-banquet-seat-target:hover {
+  background: #fff0f3;
+}
+
+.wos-banquet-seat-selected .wos-banquet-seat {
+  border-color: #660033;
+  box-shadow: 0 0 0 2px rgba(102, 0, 51, 0.12);
+}
+
+[data-theme="dark"] .wos-banquet-seat-target {
+  border-color: var(--wos-primary);
+  color: var(--wos-heading);
+  background: rgba(255, 255, 255, 0.06);
+}
+
 .wos-table-card {
   min-height: auto;
   min-width: 0;

@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import SeatGuestModal from "../components/tables/SeatGuestModal.jsx";
 import DeleteTableModal from "../components/tables/DeleteTableModal.jsx";
 import BanquetTableSeating from "../components/tables/BanquetTableSeating.jsx";
-import { useIsMobile } from "../hooks/useIsMobile.js";
+import { usePrefersTapLayout } from "../hooks/usePrefersTapLayout.js";
 import {
   fetchTables,
   fetchUnseatedGuests,
@@ -23,7 +23,7 @@ import {
 
 function TablesPage() {
   const { t } = useTranslation();
-  const isMobile = useIsMobile();
+  const prefersTapLayout = usePrefersTapLayout();
   const defaultTables = useMemo(() => getDefaultTableLabels(t), [t]);
   const sideConfig = useMemo(() => getGuestSideConfig(t), [t]);
   const statusConfig = useMemo(() => getGuestStatusConfig(t), [t]);
@@ -36,6 +36,7 @@ function TablesPage() {
   const [isAddingTable, setIsAddingTable] = useState(false);
   const [tableToDelete, setTableToDelete] = useState(null);
   const [seatModalGuest, setSeatModalGuest] = useState(null);
+  const [selectedGuestId, setSelectedGuestId] = useState(null);
 
   useEffect(() => {
     loadTablesData();
@@ -152,6 +153,50 @@ function TablesPage() {
     }
   };
 
+  const handleDropOnSeat = async (table, seatIndex) => {
+    if (!draggedGuest) return;
+
+    try {
+      await assignGuestToTable(draggedGuest.id, table.id, seatIndex);
+      await loadTablesData();
+
+      setMessage(
+        `${draggedGuest.name} ${t("tables.seatedAt")} ${getTableDisplayName(t, table.name)}`,
+      );
+    } catch (error) {
+      setMessage(error.message);
+    } finally {
+      setDraggedGuest(null);
+      setTimeout(() => setMessage(""), 2500);
+    }
+  };
+
+  const handleEmptySeatClick = async (table, seatIndex) => {
+    if (!selectedGuestId) return;
+
+    const guest =
+      unseatedGuests.find((item) => item.id === selectedGuestId) ||
+      tables
+        .flatMap((item) => item.guests)
+        .find((item) => item.id === selectedGuestId);
+
+    if (!guest) return;
+
+    try {
+      await assignGuestToTable(guest.id, table.id, seatIndex);
+      await loadTablesData();
+      setSelectedGuestId(null);
+
+      setMessage(
+        `${guest.name} ${t("tables.seatedAt")} ${getTableDisplayName(t, table.name)}`,
+      );
+    } catch (error) {
+      setMessage(error.message);
+    } finally {
+      setTimeout(() => setMessage(""), 2500);
+    }
+  };
+
   const handleDropOnUnseated = async () => {
     if (!draggedGuest) return;
 
@@ -168,13 +213,13 @@ function TablesPage() {
     }
   };
 
-  const handleSeatGuestAtTable = async (table) => {
+  const handleSeatGuestAtSeat = async (table, seatIndex) => {
     if (!seatModalGuest) return;
 
     const guest = seatModalGuest;
 
     try {
-      await assignGuestToTable(guest.id, table.id);
+      await assignGuestToTable(guest.id, table.id, seatIndex);
       await loadTablesData();
 
       setMessage(
@@ -184,6 +229,7 @@ function TablesPage() {
       setMessage(error.message);
     } finally {
       setSeatModalGuest(null);
+      setSelectedGuestId(null);
       setTimeout(() => setMessage(""), 2500);
     }
   };
@@ -202,14 +248,23 @@ function TablesPage() {
       setMessage(error.message);
     } finally {
       setSeatModalGuest(null);
+      setSelectedGuestId(null);
       setTimeout(() => setMessage(""), 2500);
     }
   };
 
   const openSeatModal = (guest) => {
-    if (isMobile) {
-      setSeatModalGuest(guest);
+    setSeatModalGuest(guest);
+    setSelectedGuestId(guest.id);
+  };
+
+  const selectGuestForSeating = (guest) => {
+    if (prefersTapLayout) {
+      openSeatModal(guest);
+      return;
     }
+
+    setSelectedGuestId((current) => (current === guest.id ? null : guest.id));
   };
 
   const renderTable = (table, isSweetheart = false) => {
@@ -219,8 +274,8 @@ function TablesPage() {
     return (
       <article
         key={table.id}
-        onDragOver={isMobile ? undefined : (event) => event.preventDefault()}
-        onDrop={isMobile ? undefined : () => handleDropOnTable(table)}
+        onDragOver={prefersTapLayout ? undefined : (event) => event.preventDefault()}
+        onDrop={prefersTapLayout ? undefined : () => handleDropOnTable(table)}
         className={`group relative overflow-hidden border transition wos-table-card ${
           isSweetheart
             ? "rounded-[2.5rem] bg-gradient-to-br from-[#660033] to-[#38131f] text-white border-[#8c295b] shadow-[0_25px_70px_rgba(102,0,51,0.25)] p-6"
@@ -268,7 +323,7 @@ function TablesPage() {
                   onClick={() => setTableToDelete(table)}
                   aria-label={t("tables.deleteTableAria")}
                   className={`flex h-8 w-8 items-center justify-center rounded-xl border wos-table-delete-btn transition-all duration-200 hover:border-red-200 hover:bg-red-50 hover:text-red-600 focus-visible:opacity-100 ${
-                    isMobile
+                    prefersTapLayout
                       ? "opacity-100"
                       : "opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto"
                   }`}
@@ -298,15 +353,19 @@ function TablesPage() {
           </div>
 
           <BanquetTableSeating
+            table={table}
             guests={table.guests}
             capacity={effectiveCapacity}
             isSweetheart={isSweetheart}
             variant={isSweetheart ? "dark" : "light"}
-            isMobile={isMobile}
+            prefersTapLayout={prefersTapLayout}
+            selectedGuestId={selectedGuestId}
             statusConfig={statusConfig}
             emptyLabel={t("tables.emptySeat")}
             onDragStart={handleDragStart}
             onGuestClick={openSeatModal}
+            onSeatDrop={handleDropOnSeat}
+            onEmptySeatClick={handleEmptySeatClick}
           />
         </div>
       </article>
@@ -411,7 +470,7 @@ function TablesPage() {
               )}
 
               <p className="text-sm text-[#8d7380]">
-                {isMobile ? t("tables.tapHint") : t("tables.dragHint")}
+                {prefersTapLayout ? t("tables.tapHint") : t("tables.dragHint")}
               </p>
             </div>
           </div>
@@ -432,8 +491,8 @@ function TablesPage() {
         </div>
 
         <aside
-          onDragOver={isMobile ? undefined : (event) => event.preventDefault()}
-          onDrop={isMobile ? undefined : handleDropOnUnseated}
+          onDragOver={prefersTapLayout ? undefined : (event) => event.preventDefault()}
+          onDrop={prefersTapLayout ? undefined : handleDropOnUnseated}
           className="wos-card p-6 wos-sticky-panel"
         >
           <div>
@@ -450,32 +509,32 @@ function TablesPage() {
                   {t("tables.everyoneSeated")}
                 </p>
                 <p className="text-xs text-[#8d7380] mt-1">
-                  {isMobile ? t("tables.unseatTapHint") : t("tables.unseatHint")}
+                  {prefersTapLayout ? t("tables.unseatTapHint") : t("tables.unseatHint")}
                 </p>
               </div>
             ) : (
               unseatedGuests.map((guest) => (
                 <div
                   key={guest.id}
-                  draggable={!isMobile}
+                  draggable={!prefersTapLayout}
                   onDragStart={
-                    isMobile ? undefined : () => handleDragStart(guest)
+                    prefersTapLayout ? undefined : () => handleDragStart(guest)
                   }
-                  role={isMobile ? "button" : undefined}
-                  tabIndex={isMobile ? 0 : undefined}
-                  onClick={isMobile ? () => openSeatModal(guest) : undefined}
-                  onKeyDown={
-                    isMobile
-                      ? (event) => {
-                          if (event.key === "Enter" || event.key === " ") {
-                            event.preventDefault();
-                            openSeatModal(guest);
-                          }
-                        }
-                      : undefined
-                  }
-                  className={`rounded-2xl bg-[#fff8fa] border border-[#eadde2] px-4 py-3 transition ${
-                    isMobile
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => selectGuestForSeating(guest)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      selectGuestForSeating(guest);
+                    }
+                  }}
+                  className={`rounded-2xl bg-[#fff8fa] border px-4 py-3 transition ${
+                    selectedGuestId === guest.id
+                      ? "border-[#660033] bg-[#fff0f3] ring-2 ring-[#660033]/15"
+                      : "border-[#eadde2]"
+                  } ${
+                    prefersTapLayout
                       ? "cursor-pointer active:scale-[0.99] hover:bg-[#fff0f3]"
                       : "cursor-grab active:cursor-grabbing hover:bg-[#fff0f3]"
                   }`}
@@ -500,7 +559,7 @@ function TablesPage() {
         guest={seatModalGuest}
         tables={tables}
         onClose={() => setSeatModalGuest(null)}
-        onSelectTable={handleSeatGuestAtTable}
+        onSelectSeat={handleSeatGuestAtSeat}
         onUnseat={handleUnseatFromModal}
       />
 

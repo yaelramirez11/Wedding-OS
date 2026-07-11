@@ -1,15 +1,15 @@
 const prisma = require("../lib/prisma");
 const { createError, notFoundError } = require("../lib/errors");
-const { deleteOwned, updateOwned } = require("../lib/ownership");
+const { updateOwned } = require("../lib/ownership");
 
 const TABLE_CAPACITY = 10;
 const SWEETHEART_TABLE_CAPACITY = 2;
+const SWEETHEART_TABLE_NAME = "Sweetheart Table";
 
-const getCapacityForTable = (table) => {
-  return table.name === "Sweetheart Table"
+const getCapacityForTable = (table) =>
+  table.name === SWEETHEART_TABLE_NAME
     ? SWEETHEART_TABLE_CAPACITY
     : TABLE_CAPACITY;
-};
 
 const getTables = async (userId) => {
   return prisma.weddingTable.findMany({
@@ -17,9 +17,7 @@ const getTables = async (userId) => {
     include: {
       guests: {
         where: { userId },
-        orderBy: {
-          createdAt: "asc",
-        },
+        orderBy: [{ seatIndex: "asc" }, { createdAt: "asc" }],
       },
     },
     orderBy: {
@@ -30,7 +28,7 @@ const getTables = async (userId) => {
 
 const createTable = async (userId, data) => {
   const capacity =
-    data.name === "Sweetheart Table"
+    data.name === SWEETHEART_TABLE_NAME
       ? SWEETHEART_TABLE_CAPACITY
       : TABLE_CAPACITY;
 
@@ -59,7 +57,7 @@ const deleteTable = async (userId, id) => {
     throw notFoundError();
   }
 
-  if (table.name === "Sweetheart Table") {
+  if (table.name === SWEETHEART_TABLE_NAME) {
     throw createError("The sweetheart table cannot be removed.", 400);
   }
 
@@ -70,6 +68,7 @@ const deleteTable = async (userId, id) => {
     },
     data: {
       tableId: null,
+      seatIndex: null,
     },
   });
 
@@ -80,7 +79,19 @@ const deleteTable = async (userId, id) => {
   });
 };
 
-const assignGuestToTable = async (userId, { guestId, tableId }) => {
+const findFirstOpenSeat = (occupiedSeatIndexes, capacity) => {
+  const used = new Set(
+    occupiedSeatIndexes.filter((index) => index != null && index >= 0),
+  );
+
+  for (let index = 0; index < capacity; index += 1) {
+    if (!used.has(index)) return index;
+  }
+
+  return null;
+};
+
+const assignGuestToTable = async (userId, { guestId, tableId, seatIndex }) => {
   const guest = await prisma.guest.findFirst({
     where: {
       id: guestId,
@@ -99,6 +110,7 @@ const assignGuestToTable = async (userId, { guestId, tableId }) => {
       },
       data: {
         tableId: null,
+        seatIndex: null,
       },
     });
   }
@@ -115,16 +127,91 @@ const assignGuestToTable = async (userId, { guestId, tableId }) => {
   }
 
   const capacity = getCapacityForTable(table);
-
-  const count = await prisma.guest.count({
+  const tableGuests = await prisma.guest.findMany({
     where: {
       tableId,
       userId,
     },
+    select: {
+      id: true,
+      seatIndex: true,
+    },
   });
 
-  if (count >= capacity) {
+  const isAlreadyAtTable = guest.tableId === tableId;
+  const otherGuests = tableGuests.filter((item) => item.id !== guestId);
+
+  if (!isAlreadyAtTable && otherGuests.length >= capacity) {
     throw createError(`This table already has ${capacity} guests.`, 400);
+  }
+
+  let targetSeatIndex = seatIndex;
+
+  if (targetSeatIndex != null) {
+    if (targetSeatIndex < 0 || targetSeatIndex >= capacity) {
+      throw createError("Invalid seat.", 400);
+    }
+  } else {
+    targetSeatIndex = findFirstOpenSeat(
+      otherGuests.map((item) => item.seatIndex),
+      capacity,
+    );
+
+    if (targetSeatIndex == null) {
+      throw createError(`This table already has ${capacity} guests.`, 400);
+    }
+  }
+
+  const occupant = otherGuests.find(
+    (item) => item.seatIndex === targetSeatIndex,
+  );
+
+  if (occupant) {
+    const previousSeatIndex = guest.seatIndex;
+
+    if (
+      previousSeatIndex != null &&
+      previousSeatIndex >= 0 &&
+      previousSeatIndex < capacity &&
+      previousSeatIndex !== targetSeatIndex
+    ) {
+      await prisma.$transaction([
+        prisma.guest.update({
+          where: { id: occupant.id },
+          data: { seatIndex: previousSeatIndex },
+        }),
+        prisma.guest.update({
+          where: { id: guestId },
+          data: {
+            tableId,
+            seatIndex: targetSeatIndex,
+          },
+        }),
+      ]);
+    } else {
+      const fallbackSeat = findFirstOpenSeat(
+        otherGuests
+          .filter((item) => item.id !== occupant.id)
+          .map((item) => item.seatIndex),
+        capacity,
+      );
+
+      await prisma.$transaction([
+        prisma.guest.update({
+          where: { id: occupant.id },
+          data: { seatIndex: fallbackSeat },
+        }),
+        prisma.guest.update({
+          where: { id: guestId },
+          data: {
+            tableId,
+            seatIndex: targetSeatIndex,
+          },
+        }),
+      ]);
+    }
+
+    return prisma.guest.findUnique({ where: { id: guestId } });
   }
 
   return prisma.guest.update({
@@ -133,6 +220,7 @@ const assignGuestToTable = async (userId, { guestId, tableId }) => {
     },
     data: {
       tableId,
+      seatIndex: targetSeatIndex,
     },
   });
 };

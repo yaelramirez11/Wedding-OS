@@ -15,11 +15,12 @@ export const deleteTable = async (tableId) =>
     method: "DELETE",
   });
 
-export const assignGuestToTable = async (guestId, tableId) =>
+export const assignGuestToTable = async (guestId, tableId, seatIndex = undefined) =>
   apiFetch("/tables/assign", {
     method: "PATCH",
     body: JSON.stringify({
       guestId,
       tableId,
+      ...(seatIndex !== undefined ? { seatIndex } : {}),
     }),
   });

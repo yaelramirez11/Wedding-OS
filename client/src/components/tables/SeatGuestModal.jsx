@@ -1,5 +1,10 @@
+import { useMemo, useState } from "react";
+
+import BanquetTableSeating from "./BanquetTableSeating.jsx";
+import { buildSeatSlots } from "./tableSeatingUtils.js";
 import { useTranslation } from "../../context/PreferencesContext.jsx";
 import {
+  getGuestStatusConfig,
   getTableDisplayName,
   SWEETHEART_TABLE_NAME,
 } from "../../i18n/helpers.js";
@@ -9,91 +14,232 @@ function SeatGuestModal({
   guest,
   tables,
   onClose,
-  onSelectTable,
+  onSelectSeat,
   onUnseat,
 }) {
   const { t } = useTranslation();
+  const statusConfig = useMemo(() => getGuestStatusConfig(t), [t]);
+  const [selectedTableId, setSelectedTableId] = useState(null);
+
+  const seatedTable = useMemo(
+    () =>
+      tables.find((table) =>
+        table.guests.some((tableGuest) => tableGuest.id === guest?.id),
+      ),
+    [guest, tables],
+  );
+
+  const sortedTables = useMemo(
+    () =>
+      [...tables].sort((a, b) => {
+        if (a.name === SWEETHEART_TABLE_NAME) return 1;
+        if (b.name === SWEETHEART_TABLE_NAME) return -1;
+        return a.order - b.order;
+      }),
+    [tables],
+  );
+
+  const selectedTable = sortedTables.find(
+    (table) => table.id === selectedTableId,
+  );
 
   if (!open || !guest) return null;
 
-  const seatedTable = tables.find((table) =>
-    table.guests.some((tableGuest) => tableGuest.id === guest.id),
-  );
+  const handleClose = () => {
+    setSelectedTableId(null);
+    onClose();
+  };
 
-  const sortedTables = [...tables].sort((a, b) => {
-    if (a.name === SWEETHEART_TABLE_NAME) return 1;
-    if (b.name === SWEETHEART_TABLE_NAME) return -1;
-    return a.order - b.order;
-  });
+  const handlePickTable = (table) => {
+    setSelectedTableId(table.id);
+  };
+
+  const handlePickSeat = (seatIndex) => {
+    if (!selectedTable) return;
+    onSelectSeat(selectedTable, seatIndex);
+    setSelectedTableId(null);
+  };
 
   return (
     <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-end sm:items-center justify-center z-50 p-4">
-      <div className="wos-card rounded-[2rem] w-full max-w-md p-6 sm:p-8 shadow-xl max-h-[85vh] flex flex-col animate-[fadeIn_0.15s_ease-out]">
+      <div className="wos-card rounded-[2rem] w-full max-w-lg p-6 sm:p-8 shadow-xl max-h-[90vh] flex flex-col">
         <div className="h-14 w-14 rounded-2xl wos-guest-avatar flex items-center justify-center mb-5 text-xl font-semibold shrink-0">
           {guest.name.charAt(0).toUpperCase()}
         </div>
 
         <h2 className="text-2xl font-semibold wos-text-heading">
-          {t("tables.seatGuestTitle")}
+          {selectedTable
+            ? t("tables.chooseSeatTitle")
+            : t("tables.seatGuestTitle")}
         </h2>
 
         <p className="wos-text-muted mt-2 leading-relaxed">
-          {t("tables.seatGuestSubtitle")}{" "}
-          <span className="font-semibold wos-text-heading">{guest.name}</span>
+          {selectedTable ? (
+            <>
+              {t("tables.chooseSeatSubtitle")}{" "}
+              <span className="font-semibold wos-text-heading">
+                {getTableDisplayName(t, selectedTable.name)}
+              </span>
+            </>
+          ) : (
+            <>
+              {t("tables.seatGuestSubtitle")}{" "}
+              <span className="font-semibold wos-text-heading">{guest.name}</span>
+            </>
+          )}
         </p>
 
-        <p className="text-xs font-medium wos-text-muted mt-5 mb-3 uppercase tracking-wide">
-          {t("tables.seatGuestChoose")}
-        </p>
+        {!selectedTable ? (
+          <>
+            <p className="text-xs font-medium wos-text-muted mt-5 mb-3 uppercase tracking-wide">
+              {t("tables.seatGuestChoose")}
+            </p>
 
-        <div className="space-y-2 overflow-y-auto flex-1 pr-1">
-          {sortedTables.map((table) => {
-            const isSweetheart = table.name === SWEETHEART_TABLE_NAME;
-            const capacity = isSweetheart ? 2 : table.capacity || 10;
-            const isCurrent = table.guests.some(
-              (tableGuest) => tableGuest.id === guest.id,
-            );
-            const isFull = table.guests.length >= capacity && !isCurrent;
+            <div className="space-y-2 overflow-y-auto flex-1 pr-1">
+              {sortedTables.map((table) => {
+                const isSweetheart = table.name === SWEETHEART_TABLE_NAME;
+                const capacity = isSweetheart ? 2 : table.capacity || 10;
+                const isCurrent = table.guests.some(
+                  (tableGuest) => tableGuest.id === guest.id,
+                );
+                const isFull = table.guests.length >= capacity && !isCurrent;
 
-            return (
-              <button
-                key={table.id}
-                type="button"
-                disabled={isFull}
-                onClick={() => onSelectTable(table)}
-                className={`w-full text-left rounded-2xl border px-4 py-3 transition active:scale-[0.99] ${
-                  isCurrent
-                    ? "border-[#660033] bg-[#fff0f3] text-[#660033]"
-                    : isFull
-                      ? "border-[#eadde2] bg-[#fff8fa] opacity-50 cursor-not-allowed"
-                      : "border-[#eadde2] bg-[#fff8fa] hover:bg-[#fff0f3] wos-text-heading"
-                }`}
-              >
-                <div className="flex items-center justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="text-sm font-semibold truncate">
-                      {getTableDisplayName(t, table.name)}
-                    </p>
-                    <p className="text-xs wos-text-muted mt-0.5 truncate">
-                      {table.label || t("tables.defaultTableLabel")}
-                    </p>
-                  </div>
+                return (
+                  <button
+                    key={table.id}
+                    type="button"
+                    disabled={isFull}
+                    onClick={() => handlePickTable(table)}
+                    className={`w-full text-left rounded-2xl border px-4 py-3 transition active:scale-[0.99] ${
+                      isCurrent
+                        ? "border-[#660033] bg-[#fff0f3] text-[#660033]"
+                        : isFull
+                          ? "border-[#eadde2] bg-[#fff8fa] opacity-50 cursor-not-allowed"
+                          : "border-[#eadde2] bg-[#fff8fa] hover:bg-[#fff0f3] wos-text-heading"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold truncate">
+                          {getTableDisplayName(t, table.name)}
+                        </p>
+                        <p className="text-xs wos-text-muted mt-0.5 truncate">
+                          {table.label || t("tables.defaultTableLabel")}
+                        </p>
+                      </div>
 
-                  <span className="text-xs font-semibold shrink-0">
-                    {isCurrent
-                      ? t("tables.currentTable")
-                      : isFull
-                        ? t("tables.tableFull")
-                        : `${table.guests.length}/${capacity}`}
-                  </span>
-                </div>
-              </button>
-            );
-          })}
-        </div>
+                      <span className="text-xs font-semibold shrink-0">
+                        {isCurrent
+                          ? t("tables.currentTable")
+                          : isFull
+                            ? t("tables.tableFull")
+                            : `${table.guests.length}/${capacity}`}
+                      </span>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </>
+        ) : (
+          <div className="mt-5 overflow-y-auto flex-1 pr-1">
+            <div className="rounded-[1.75rem] border border-[#eadde2] bg-[#fff8fa] p-4">
+              <BanquetTableSeating
+                table={selectedTable}
+                guests={selectedTable.guests.filter(
+                  (tableGuest) => tableGuest.id !== guest.id,
+                )}
+                capacity={
+                  selectedTable.name === SWEETHEART_TABLE_NAME ? 2 : 10
+                }
+                isSweetheart={
+                  selectedTable.name === SWEETHEART_TABLE_NAME
+                }
+                variant="light"
+                prefersTapLayout
+                selectedGuestId={guest.id}
+                statusConfig={statusConfig}
+                emptyLabel={t("tables.tapSeat")}
+                onDragStart={() => {}}
+                onGuestClick={() => {}}
+                onSeatDrop={() => {}}
+                onEmptySeatClick={(_, seatIndex) => handlePickSeat(seatIndex)}
+              />
+
+              <div className="mt-4 grid grid-cols-2 sm:grid-cols-5 gap-2">
+                {buildSeatSlots(
+                  selectedTable.guests.filter(
+                    (tableGuest) => tableGuest.id !== guest.id,
+                  ),
+                  selectedTable.name === SWEETHEART_TABLE_NAME ? 2 : 10,
+                ).map((occupant, seatIndex) => {
+                  const isTaken = Boolean(occupant);
+                  const seatLabels = [
+                    t("tables.seats.head"),
+                    t("tables.seats.left1"),
+                    t("tables.seats.left2"),
+                    t("tables.seats.left3"),
+                    t("tables.seats.left4"),
+                    t("tables.seats.right1"),
+                    t("tables.seats.right2"),
+                    t("tables.seats.right3"),
+                    t("tables.seats.right4"),
+                    t("tables.seats.foot"),
+                  ];
+
+                  if (selectedTable.name === SWEETHEART_TABLE_NAME) {
+                    return (
+                      <button
+                        key={seatIndex}
+                        type="button"
+                        disabled={isTaken}
+                        onClick={() => handlePickSeat(seatIndex)}
+                        className={`rounded-xl border px-3 py-2 text-xs font-semibold transition ${
+                          isTaken
+                            ? "opacity-40 cursor-not-allowed border-[#eadde2]"
+                            : "border-[#660033] bg-white hover:bg-[#fff0f3]"
+                        }`}
+                      >
+                        {seatIndex === 0
+                          ? t("tables.seats.left")
+                          : t("tables.seats.right")}
+                      </button>
+                    );
+                  }
+
+                  return (
+                    <button
+                      key={seatIndex}
+                      type="button"
+                      disabled={isTaken}
+                      onClick={() => handlePickSeat(seatIndex)}
+                      className={`rounded-xl border px-3 py-2 text-xs font-semibold transition ${
+                        isTaken
+                          ? "opacity-40 cursor-not-allowed border-[#eadde2]"
+                          : "border-[#660033] bg-white hover:bg-[#fff0f3]"
+                      }`}
+                    >
+                      {seatLabels[seatIndex]}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="flex flex-col gap-3 mt-6 shrink-0">
-          {seatedTable && (
+          {selectedTable && (
+            <button
+              type="button"
+              onClick={() => setSelectedTableId(null)}
+              className="w-full wos-secondary-btn py-3 active:scale-95 transition"
+            >
+              {t("tables.backToTables")}
+            </button>
+          )}
+
+          {seatedTable && !selectedTable && (
             <button
               type="button"
               onClick={onUnseat}
@@ -105,7 +251,7 @@ function SeatGuestModal({
 
           <button
             type="button"
-            onClick={onClose}
+            onClick={handleClose}
             className="w-full wos-secondary-btn py-3 active:scale-95 transition"
           >
             {t("common.cancel")}
