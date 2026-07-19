@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import {
   fetchBudgetItems,
@@ -17,6 +17,8 @@ import {
 } from "../i18n/helpers.js";
 
 import DeleteBudgetModal from "../components/budget/DeleteBudgetModal.jsx";
+
+const BUDGET_STATS_SCROLL_KEY = "wos-budget-stats-scroll";
 
 function BudgetPage() {
   const { t, language } = useTranslation();
@@ -47,6 +49,12 @@ function BudgetPage() {
 
   const [editingId, setEditingId] = useState(null);
   const [editingExpense, setEditingExpense] = useState(null);
+  const statsTrackRef = useRef(null);
+  const statsScrollRestoredRef = useRef(false);
+
+  const weddingTotal = items
+    .filter((item) => item.category !== "honeymoon")
+    .reduce((sum, item) => sum + item.cost, 0);
 
   const total = items.reduce((sum, item) => sum + item.cost, 0);
 
@@ -72,6 +80,29 @@ function BudgetPage() {
   useEffect(() => {
     loadBudget();
   }, []);
+
+  useEffect(() => {
+    if (statsScrollRestoredRef.current) return;
+
+    const track = statsTrackRef.current;
+    if (!track) return;
+
+    const savedScroll = sessionStorage.getItem(BUDGET_STATS_SCROLL_KEY);
+
+    requestAnimationFrame(() => {
+      if (savedScroll) {
+        track.scrollLeft = Number(savedScroll);
+      }
+      statsScrollRestoredRef.current = true;
+    });
+  }, [items]);
+
+  const handleStatsScroll = () => {
+    const track = statsTrackRef.current;
+    if (!track) return;
+
+    sessionStorage.setItem(BUDGET_STATS_SCROLL_KEY, String(track.scrollLeft));
+  };
 
   const showSuccess = (message) => {
     setSuccessMessage(message);
@@ -297,7 +328,7 @@ function BudgetPage() {
     });
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 wos-page-content">
       {successMessage && (
         <div className="rounded-2xl px-5 py-4 text-sm font-medium wos-alert-success">
           {successMessage}
@@ -317,33 +348,61 @@ function BudgetPage() {
 
         <p className="wos-text-muted mt-2 max-w-2xl">{t("budget.subtitle")}</p>
       </section>
-      <section className="grid grid-cols-1 md:grid-cols-4 gap-5">
-        <div className="wos-card rounded-3xl p-6 border border-black/5 shadow-sm">
-          <p className="text-sm wos-text-muted">{t("budget.totalCost")}</p>
-          <h2 className="text-2xl font-bold mt-2 wos-text-heading">
-            {formatMoney(total, t, language)}
-          </h2>
-        </div>
+      <section className="wos-budget-stats">
+        <div
+          ref={statsTrackRef}
+          className="wos-budget-stats-track"
+          onScroll={handleStatsScroll}
+        >
+          <div className="wos-card wos-budget-stat-card rounded-3xl border border-black/5 shadow-sm">
+            <div>
+              <p className="wos-budget-stat-label wos-text-muted">
+                {t("budget.totalCost")}
+              </p>
+              <p className="wos-budget-stat-hint">
+                {t("budget.totalCostCombinedHint")}
+              </p>
+            </div>
+            <p className="wos-budget-stat-value wos-text-heading">
+              {formatMoney(total, t, language)}
+            </p>
+          </div>
 
-        <div className="wos-card rounded-3xl p-6 border border-black/5 shadow-sm">
-          <p className="text-sm wos-text-muted">{t("budget.paid")}</p>
-          <h2 className="text-2xl font-bold mt-2 wos-text-heading">
-            {formatMoney(paid, t, language)}
-          </h2>
-        </div>
+          <div className="wos-card wos-budget-stat-card rounded-3xl border border-black/5 shadow-sm">
+            <p className="wos-budget-stat-label wos-text-muted">
+              {t("budget.weddingBudget")}
+            </p>
+            <p className="wos-budget-stat-value wos-text-heading">
+              {formatMoney(weddingTotal, t, language)}
+            </p>
+          </div>
 
-        <div className="wos-card rounded-3xl p-6 border border-black/5 shadow-sm">
-          <p className="text-sm wos-text-muted">{t("budget.advancePayments")}</p>
-          <h2 className="text-2xl font-bold mt-2 wos-text-heading">
-            {formatMoney(advancePayments, t, language)}
-          </h2>
-        </div>
+          <div className="wos-card wos-budget-stat-card rounded-3xl border border-black/5 shadow-sm">
+            <p className="wos-budget-stat-label wos-text-muted">
+              {t("budget.paid")}
+            </p>
+            <p className="wos-budget-stat-value wos-text-heading">
+              {formatMoney(paid, t, language)}
+            </p>
+          </div>
 
-        <div className="wos-card rounded-3xl p-6 border border-black/5 shadow-sm">
-          <p className="text-sm wos-text-muted">{t("budget.pending")}</p>
-          <h2 className="text-2xl font-bold mt-2 wos-text-heading">
-            {formatMoney(pending, t, language)}
-          </h2>
+          <div className="wos-card wos-budget-stat-card rounded-3xl border border-black/5 shadow-sm">
+            <p className="wos-budget-stat-label wos-text-muted">
+              {t("budget.advancePayments")}
+            </p>
+            <p className="wos-budget-stat-value wos-text-heading">
+              {formatMoney(advancePayments, t, language)}
+            </p>
+          </div>
+
+          <div className="wos-card wos-budget-stat-card rounded-3xl border border-black/5 shadow-sm">
+            <p className="wos-budget-stat-label wos-text-muted">
+              {t("budget.pending")}
+            </p>
+            <p className="wos-budget-stat-value wos-text-heading">
+              {formatMoney(pending, t, language)}
+            </p>
+          </div>
         </div>
       </section>
       <section className="wos-card rounded-3xl p-4 border border-black/5 shadow-sm flex flex-col gap-4">
@@ -394,7 +453,7 @@ function BudgetPage() {
           </select>
         </div>
       </section>
-      <section className="grid grid-cols-1 xl:grid-cols-[420px_1fr] gap-6 items-start">
+      <section className="wos-split-layout">
         <form
           onSubmit={handleSubmit}
           className="wos-card p-6 rounded-3xl shadow-sm border border-black/5 wos-sticky-panel"

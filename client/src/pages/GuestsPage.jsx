@@ -191,7 +191,7 @@ function GuestsPage() {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 wos-page-content">
       {successMessage && (
         <div className="rounded-2xl bg-green-100 text-green-700 px-5 py-4 text-sm font-medium">
           {successMessage}
@@ -217,7 +217,7 @@ function GuestsPage() {
           <p className="wos-text-muted mt-2 max-w-2xl">{t("guests.subtitle")}</p>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-5">
+        <div className="wos-stat-grid">
           {[
             {
               label: t("guests.totalGuests"),
@@ -256,14 +256,7 @@ function GuestsPage() {
           ].map((card) => (
             <div
               key={card.label}
-              className="
-      wos-card
-      p-6
-      flex
-      items-center
-      gap-5
-      min-h-[140px]
-      "
+              className="wos-card p-6 flex items-center gap-5 min-h-[140px] min-w-0"
             >
               <div
                 className={`
@@ -281,7 +274,7 @@ function GuestsPage() {
                 {card.icon}
               </div>
 
-              <div>
+              <div className="min-w-0">
                 <p className="text-sm text-[#8d7380]">{card.label}</p>
 
                 <div className="flex items-end gap-3 mt-2">
@@ -299,7 +292,7 @@ function GuestsPage() {
         </div>
       </section>
 
-      <section className="grid grid-cols-1 xl:grid-cols-[420px_1fr] gap-6 items-start">
+      <section className="wos-split-layout">
         <GuestForm
           name={name}
           setName={setName}

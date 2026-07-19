@@ -338,7 +338,7 @@ function TimelinePage() {
   )[0];
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 wos-page-content">
       {successMessage && (
         <div className="rounded-2xl px-5 py-4 text-sm font-medium wos-alert-success">
           {successMessage}
@@ -431,7 +431,7 @@ function TimelinePage() {
         </section>
       )}
 
-      <section className="flex flex-wrap gap-3">
+      <section className="wos-filter-row">
         {[
           { value: "all", label: t("timeline.filterAll"), icon: "♡" },
           {
@@ -465,7 +465,7 @@ function TimelinePage() {
         ))}
       </section>
 
-      <section className="grid grid-cols-1 xl:grid-cols-[420px_1fr] gap-6 items-start">
+      <section className="wos-split-layout">
         <form
           onSubmit={handleSubmit}
           className="wos-card p-6 wos-sticky-panel overflow-hidden relative"
@@ -561,7 +561,7 @@ function TimelinePage() {
           </div>
         </form>
 
-        <div className="relative">
+        <div className="relative wos-timeline-panel">
           <div className="absolute left-7 top-6 bottom-6 w-[3px] rounded-full bg-gradient-to-b from-[#660033] via-[#f2c8d4] to-[#660033]/20 wos-timeline-rail" />
 
           <div className="space-y-5">

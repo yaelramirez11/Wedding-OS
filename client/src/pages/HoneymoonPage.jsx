@@ -295,7 +295,7 @@ function HoneymoonPage() {
     formatLocaleDate(value, language, t("honeymoon.noDateYet"));
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 wos-page-content">
       {successMessage && (
         <div className="rounded-2xl px-5 py-4 text-sm font-medium wos-alert-success">
           {successMessage}
@@ -410,7 +410,7 @@ function HoneymoonPage() {
         </div>
       </section>
 
-      <section className="grid grid-cols-1 xl:grid-cols-[420px_1fr] gap-6 items-start">
+      <section className="wos-split-layout">
         <form
           onSubmit={handleSubmit}
           className="wos-card p-6 wos-sticky-panel overflow-hidden relative"

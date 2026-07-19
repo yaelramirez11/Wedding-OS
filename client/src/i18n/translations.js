@@ -158,6 +158,8 @@ export const translations = {
       subtitle:
         "Let's keep track of our wedding and honeymoon costs, advance payments and completed payments in one calm place.",
       totalCost: "Total cost",
+      totalCostCombinedHint: "(Wedding + Honeymoon)",
+      weddingBudget: "Wedding budget",
       paid: "Paid",
       advancePayments: "Advance payments",
       pending: "Pending",
@@ -738,6 +740,8 @@ export const translations = {
       subtitle:
         "Llevemos el control de los costos de boda y luna de miel, anticipos y pagos completados en un solo lugar.",
       totalCost: "Costo total",
+      totalCostCombinedHint: "(Boda + Luna de miel)",
+      weddingBudget: "Presupuesto de boda",
       paid: "Pagado",
       advancePayments: "Anticipos",
       pending: "Pendiente",
