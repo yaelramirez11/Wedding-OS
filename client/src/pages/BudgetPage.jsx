@@ -20,6 +20,41 @@ import DeleteBudgetModal from "../components/budget/DeleteBudgetModal.jsx";
 
 const BUDGET_STATS_SCROLL_KEY = "wos-budget-stats-scroll";
 
+function isWeddingBudgetItem(item) {
+  return item.category !== "honeymoon";
+}
+
+function calculatePendingTotal(itemList) {
+  return itemList.reduce((sum, item) => {
+    if (item.status === "paid") return sum;
+
+    const remaining = item.cost - (item.advancePaid || 0);
+
+    return sum + Math.max(remaining, 0);
+  }, 0);
+}
+
+function BudgetScopeSwitch({ includeHoneymoon, onChange, label, t }) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={includeHoneymoon}
+      aria-label={label}
+      title={label}
+      onClick={() => onChange(!includeHoneymoon)}
+      className={`wos-budget-scope-switch${includeHoneymoon ? " is-on" : ""}`}
+    >
+      <span className="wos-budget-scope-switch-track" aria-hidden="true">
+        <span className="wos-budget-scope-switch-thumb" />
+      </span>
+      <span className="wos-budget-scope-switch-text">
+        {includeHoneymoon ? t("budget.scopeCombinedShort") : t("budget.scopeWeddingShort")}
+      </span>
+    </button>
+  );
+}
+
 function BudgetPage() {
   const { t, language } = useTranslation();
   const categories = useMemo(() => getBudgetCategories(t), [t]);
@@ -49,12 +84,14 @@ function BudgetPage() {
 
   const [editingId, setEditingId] = useState(null);
   const [editingExpense, setEditingExpense] = useState(null);
+  const [totalIncludesHoneymoon, setTotalIncludesHoneymoon] = useState(true);
+  const [pendingIncludesHoneymoon, setPendingIncludesHoneymoon] = useState(true);
   const statsTrackRef = useRef(null);
   const statsScrollRestoredRef = useRef(false);
 
-  const weddingTotal = items
-    .filter((item) => item.category !== "honeymoon")
-    .reduce((sum, item) => sum + item.cost, 0);
+  const weddingItems = items.filter(isWeddingBudgetItem);
+
+  const weddingTotal = weddingItems.reduce((sum, item) => sum + item.cost, 0);
 
   const total = items.reduce((sum, item) => sum + item.cost, 0);
 
@@ -66,13 +103,11 @@ function BudgetPage() {
     .filter((item) => item.status === "advancePayment")
     .reduce((sum, item) => sum + (item.advancePaid || 0), 0);
 
-  const pending = items.reduce((sum, item) => {
-    if (item.status === "paid") return sum;
+  const weddingPending = calculatePendingTotal(weddingItems);
+  const pending = calculatePendingTotal(items);
 
-    const remaining = item.cost - (item.advancePaid || 0);
-
-    return sum + Math.max(remaining, 0);
-  }, 0);
+  const displayedTotal = totalIncludesHoneymoon ? total : weddingTotal;
+  const displayedPending = pendingIncludesHoneymoon ? pending : weddingPending;
 
   const currentSubcategories = subcategories[category] || [];
   const editingSubcategories = subcategories[editingExpense?.category] || [];
@@ -355,25 +390,26 @@ function BudgetPage() {
           onScroll={handleStatsScroll}
         >
           <div className="wos-card wos-budget-stat-card rounded-3xl border border-black/5 shadow-sm">
-            <div>
-              <p className="wos-budget-stat-label wos-text-muted">
-                {t("budget.totalCost")}
-              </p>
-              <p className="wos-budget-stat-hint">
-                {t("budget.totalCostCombinedHint")}
-              </p>
+            <div className="wos-budget-stat-card-header">
+              <div>
+                <p className="wos-budget-stat-label wos-text-muted">
+                  {t("budget.totalCost")}
+                </p>
+                <p className="wos-budget-stat-hint">
+                  {totalIncludesHoneymoon
+                    ? t("budget.totalCostCombinedHint")
+                    : t("budget.totalCostWeddingHint")}
+                </p>
+              </div>
+              <BudgetScopeSwitch
+                includeHoneymoon={totalIncludesHoneymoon}
+                onChange={setTotalIncludesHoneymoon}
+                label={t("budget.toggleTotalScope")}
+                t={t}
+              />
             </div>
             <p className="wos-budget-stat-value wos-text-heading">
-              {formatMoney(total, t, language)}
-            </p>
-          </div>
-
-          <div className="wos-card wos-budget-stat-card rounded-3xl border border-black/5 shadow-sm">
-            <p className="wos-budget-stat-label wos-text-muted">
-              {t("budget.weddingBudget")}
-            </p>
-            <p className="wos-budget-stat-value wos-text-heading">
-              {formatMoney(weddingTotal, t, language)}
+              {formatMoney(displayedTotal, t, language)}
             </p>
           </div>
 
@@ -396,11 +432,26 @@ function BudgetPage() {
           </div>
 
           <div className="wos-card wos-budget-stat-card rounded-3xl border border-black/5 shadow-sm">
-            <p className="wos-budget-stat-label wos-text-muted">
-              {t("budget.pending")}
-            </p>
+            <div className="wos-budget-stat-card-header">
+              <div>
+                <p className="wos-budget-stat-label wos-text-muted">
+                  {t("budget.pending")}
+                </p>
+                <p className="wos-budget-stat-hint">
+                  {pendingIncludesHoneymoon
+                    ? t("budget.totalCostCombinedHint")
+                    : t("budget.totalCostWeddingHint")}
+                </p>
+              </div>
+              <BudgetScopeSwitch
+                includeHoneymoon={pendingIncludesHoneymoon}
+                onChange={setPendingIncludesHoneymoon}
+                label={t("budget.togglePendingScope")}
+                t={t}
+              />
+            </div>
             <p className="wos-budget-stat-value wos-text-heading">
-              {formatMoney(pending, t, language)}
+              {formatMoney(displayedPending, t, language)}
             </p>
           </div>
         </div>
