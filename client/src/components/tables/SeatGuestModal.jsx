@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 
 import BanquetTableSeating from "./BanquetTableSeating.jsx";
-import { buildSeatSlots } from "./tableSeatingUtils.js";
+import { buildSeatSlots, getTableCapacity } from "./tableSeatingUtils.js";
 import { useTranslation } from "../../context/PreferencesContext.jsx";
 import {
   getGuestStatusConfig,
@@ -98,7 +98,7 @@ function SeatGuestModal({
             <div className="space-y-2 overflow-y-auto flex-1 pr-1">
               {sortedTables.map((table) => {
                 const isSweetheart = table.name === SWEETHEART_TABLE_NAME;
-                const capacity = isSweetheart ? 2 : table.capacity || 10;
+                const capacity = getTableCapacity(table);
                 const isCurrent = table.guests.some(
                   (tableGuest) => tableGuest.id === guest.id,
                 );
@@ -149,9 +149,7 @@ function SeatGuestModal({
                 guests={selectedTable.guests.filter(
                   (tableGuest) => tableGuest.id !== guest.id,
                 )}
-                capacity={
-                  selectedTable.name === SWEETHEART_TABLE_NAME ? 2 : 10
-                }
+                capacity={getTableCapacity(selectedTable)}
                 isSweetheart={
                   selectedTable.name === SWEETHEART_TABLE_NAME
                 }
@@ -171,9 +169,10 @@ function SeatGuestModal({
                   selectedTable.guests.filter(
                     (tableGuest) => tableGuest.id !== guest.id,
                   ),
-                  selectedTable.name === SWEETHEART_TABLE_NAME ? 2 : 10,
+                  getTableCapacity(selectedTable),
                 ).map((occupant, seatIndex) => {
                   const isTaken = Boolean(occupant);
+                  const capacity = getTableCapacity(selectedTable);
                   const seatLabels = [
                     t("tables.seats.head"),
                     t("tables.seats.left1"),
@@ -219,7 +218,9 @@ function SeatGuestModal({
                           : "border-[#660033] bg-white hover:bg-[#fff0f3]"
                       }`}
                     >
-                      {seatLabels[seatIndex]}
+                      {capacity === 10
+                        ? seatLabels[seatIndex]
+                        : `${t("tables.seatNumber")} ${seatIndex + 1}`}
                     </button>
                   );
                 })}

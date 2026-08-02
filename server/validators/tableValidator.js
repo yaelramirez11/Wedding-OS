@@ -6,6 +6,27 @@ const createTableSchema = z.object({
   label: z.string().max(100).optional().nullable(),
 
   order: z.number().int().optional(),
+
+  capacity: z.number().int().min(1).max(30).optional(),
+});
+
+const updateTableSchema = z.object({
+  name: z.string().min(1).max(100).optional(),
+
+  label: z.string().max(100).optional().nullable(),
+
+  order: z.number().int().optional(),
+
+  capacity: z.number().int().min(1).max(30).optional(),
+});
+
+const mergeTablesSchema = z.object({
+  primaryTableId: z.number().int(),
+  secondaryTableId: z.number().int(),
+  name: z.string().min(1).max(100),
+  label: z.string().max(100).optional().nullable(),
+  order: z.number().int().optional(),
+  addExtraSeat: z.boolean().optional().default(false),
 });
 
 const assignGuestSchema = z.object({
@@ -16,5 +37,7 @@ const assignGuestSchema = z.object({
 
 module.exports = {
   createTableSchema,
+  updateTableSchema,
+  mergeTablesSchema,
   assignGuestSchema,
 };

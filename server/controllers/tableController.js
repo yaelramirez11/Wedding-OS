@@ -2,6 +2,7 @@ const {
   getTables,
   createTable,
   updateTable,
+  mergeTables,
   deleteTable,
   assignGuestToTable,
   getUnseatedGuests,
@@ -9,6 +10,8 @@ const {
 
 const {
   createTableSchema,
+  updateTableSchema,
+  mergeTablesSchema,
   assignGuestSchema,
 } = require("../validators/tableValidator");
 
@@ -42,8 +45,19 @@ const createNewTable = async (req, res, next) => {
 
 const updateExistingTable = async (req, res, next) => {
   try {
-    const table = await updateTable(req.user.userId, req.params.id, req.body);
+    const data = updateTableSchema.parse(req.body);
+    const table = await updateTable(req.user.userId, req.params.id, data);
     res.json(table);
+  } catch (error) {
+    next(error);
+  }
+};
+
+const mergeExistingTables = async (req, res, next) => {
+  try {
+    const data = mergeTablesSchema.parse(req.body);
+    const tables = await mergeTables(req.user.userId, data);
+    res.json(tables);
   } catch (error) {
     next(error);
   }
@@ -74,6 +88,7 @@ module.exports = {
   getAllTables,
   createNewTable,
   updateExistingTable,
+  mergeExistingTables,
   removeTable,
   moveGuest,
   getGuestsWithoutTable,

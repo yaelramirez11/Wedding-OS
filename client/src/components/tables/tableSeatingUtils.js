@@ -63,3 +63,35 @@ export const SWEETHEART_SEAT_LAYOUT = [
   { index: 0, key: "left" },
   { index: 1, key: "right" },
 ];
+
+export const SWEETHEART_TABLE_NAME = "Sweetheart Table";
+export const DEFAULT_TABLE_CAPACITY = 10;
+
+export function getTableCapacity(table) {
+  if (!table) return DEFAULT_TABLE_CAPACITY;
+
+  if (table.name === SWEETHEART_TABLE_NAME) {
+    return 2;
+  }
+
+  return table.capacity || DEFAULT_TABLE_CAPACITY;
+}
+
+export function buildSeatLayout(capacity, isSweetheart = false) {
+  if (isSweetheart) {
+    return SWEETHEART_SEAT_LAYOUT;
+  }
+
+  if (capacity === 10) {
+    return REGULAR_SEAT_LAYOUT;
+  }
+
+  return Array.from({ length: capacity }, (_, index) => ({
+    index,
+    key: `grid-${index}`,
+  }));
+}
+
+export function isGridSeatLayout(capacity, isSweetheart = false) {
+  return !isSweetheart && capacity !== 10;
+}

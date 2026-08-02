@@ -10,6 +10,18 @@ export const createTable = async (data) =>
     body: JSON.stringify(data),
   });
 
+export const updateTable = async (tableId, data) =>
+  apiFetch(`/tables/${tableId}`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });
+
+export const mergeTables = async (data) =>
+  apiFetch("/tables/merge", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+
 export const deleteTable = async (tableId) =>
   apiFetch(`/tables/${tableId}`, {
     method: "DELETE",

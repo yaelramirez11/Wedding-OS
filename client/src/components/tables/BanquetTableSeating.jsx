@@ -1,6 +1,7 @@
 import {
   buildSeatSlots,
-  REGULAR_SEAT_LAYOUT,
+  buildSeatLayout,
+  isGridSeatLayout,
   SWEETHEART_SEAT_LAYOUT,
 } from "./tableSeatingUtils.js";
 
@@ -21,7 +22,10 @@ function BanquetTableSeating({
 }) {
   const slots = buildSeatSlots(guests, capacity);
   const isDark = variant === "dark";
-  const layout = isSweetheart ? SWEETHEART_SEAT_LAYOUT : REGULAR_SEAT_LAYOUT;
+  const layout = isSweetheart
+    ? SWEETHEART_SEAT_LAYOUT
+    : buildSeatLayout(capacity, isSweetheart);
+  const useGridLayout = isGridSeatLayout(capacity, isSweetheart);
 
   const renderSeat = (seatIndex, position) => {
     const guest = slots[seatIndex];
@@ -137,6 +141,16 @@ function BanquetTableSeating({
             aria-hidden="true"
           />
           {renderSeat(1, "right")}
+        </div>
+      </div>
+    );
+  }
+
+  if (useGridLayout) {
+    return (
+      <div className="wos-banquet-layout wos-banquet-layout-grid">
+        <div className="wos-banquet-grid">
+          {layout.map((seat) => renderSeat(seat.index, seat.key))}
         </div>
       </div>
     );

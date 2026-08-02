@@ -4,6 +4,7 @@ const {
   getAllTables,
   createNewTable,
   updateExistingTable,
+  mergeExistingTables,
   removeTable,
   moveGuest,
   getGuestsWithoutTable,
@@ -14,6 +15,8 @@ router.get("/", getAllTables);
 router.get("/unseated", getGuestsWithoutTable);
 
 router.post("/", createNewTable);
+
+router.post("/merge", mergeExistingTables);
 
 router.patch("/assign", moveGuest);
 

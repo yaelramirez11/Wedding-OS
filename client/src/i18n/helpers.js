@@ -287,6 +287,37 @@ export const getNextRegularTableConfig = (t, regularTables) => {
   };
 };
 
+export const getTableLabelOptions = (t) => [
+  { value: "family", label: t("tables.labels.family") },
+  { value: "friends", label: t("tables.labels.friends") },
+  { value: "brideSide", label: t("tables.labels.brideSide") },
+  { value: "groomSide", label: t("tables.labels.groomSide") },
+  { value: "specialGuests", label: t("tables.labels.specialGuests") },
+  { value: "brideAndGroom", label: t("tables.labels.brideAndGroom") },
+  { value: "newTable", label: t("tables.labels.newTable") },
+  { value: "custom", label: t("tables.labels.custom") },
+];
+
+export const resolveTableLabelValue = (label, options) => {
+  if (!label) return "custom";
+
+  const match = options.find((option) => option.label === label);
+  return match ? match.value : "custom";
+};
+
+export const resolveTableLabelText = (value, customLabel, options) => {
+  if (value === "custom") {
+    return customLabel.trim();
+  }
+
+  return options.find((option) => option.value === value)?.label || customLabel.trim();
+};
+
+export const parseTableNumber = (name) => {
+  const match = /^Table (\d+)$/.exec(name || "");
+  return match ? Number(match[1]) : "";
+};
+
 export const getWeddingHubBlessings = (t) => [
   {
     title: t("weddingHub.blessings.0.title"),

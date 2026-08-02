@@ -2,12 +2,17 @@ import { useEffect, useMemo, useState } from "react";
 
 import SeatGuestModal from "../components/tables/SeatGuestModal.jsx";
 import DeleteTableModal from "../components/tables/DeleteTableModal.jsx";
+import EditTableModal from "../components/tables/EditTableModal.jsx";
+import MergeTablesModal from "../components/tables/MergeTablesModal.jsx";
 import BanquetTableSeating from "../components/tables/BanquetTableSeating.jsx";
+import { getTableCapacity } from "../components/tables/tableSeatingUtils.js";
 import { usePrefersTapLayout } from "../hooks/usePrefersTapLayout.js";
 import {
   fetchTables,
   fetchUnseatedGuests,
   createTable,
+  updateTable,
+  mergeTables,
   deleteTable,
   assignGuestToTable,
 } from "../services/tableService";
@@ -35,6 +40,10 @@ function TablesPage() {
   const [isSeeding, setIsSeeding] = useState(false);
   const [isAddingTable, setIsAddingTable] = useState(false);
   const [tableToDelete, setTableToDelete] = useState(null);
+  const [tableToEdit, setTableToEdit] = useState(null);
+  const [isMergeModalOpen, setIsMergeModalOpen] = useState(false);
+  const [isSavingTable, setIsSavingTable] = useState(false);
+  const [isMergingTables, setIsMergingTables] = useState(false);
   const [seatModalGuest, setSeatModalGuest] = useState(null);
   const [selectedGuestId, setSelectedGuestId] = useState(null);
 
@@ -67,7 +76,7 @@ function TablesPage() {
   );
 
   const fullTables = tables.filter(
-    (table) => table.guests.length >= table.capacity,
+    (table) => table.guests.length >= getTableCapacity(table),
   ).length;
 
   const seatedPercentage =
@@ -127,6 +136,42 @@ function TablesPage() {
       setMessage(error.message || t("tables.deleteTableError"));
     } finally {
       setTableToDelete(null);
+      setTimeout(() => setMessage(""), 2500);
+    }
+  };
+
+  const handleSaveTableEdit = async (payload) => {
+    if (!tableToEdit) return;
+
+    try {
+      setIsSavingTable(true);
+      await updateTable(tableToEdit.id, payload);
+      await loadTablesData();
+      setTableToEdit(null);
+      setMessage(t("tables.editTableSuccess"));
+    } catch (error) {
+      console.error(error);
+      setMessage(error.message || t("tables.editTableError"));
+    } finally {
+      setIsSavingTable(false);
+      setTimeout(() => setMessage(""), 2500);
+    }
+  };
+
+  const handleConfirmMergeTables = async (payload) => {
+    try {
+      setIsMergingTables(true);
+      const tablesData = await mergeTables(payload);
+      setTables(tablesData);
+      const guestsData = await fetchUnseatedGuests();
+      setUnseatedGuests(guestsData);
+      setIsMergeModalOpen(false);
+      setMessage(t("tables.mergeTablesSuccess"));
+    } catch (error) {
+      console.error(error);
+      setMessage(error.message || t("tables.mergeTablesError"));
+    } finally {
+      setIsMergingTables(false);
       setTimeout(() => setMessage(""), 2500);
     }
   };
@@ -268,7 +313,7 @@ function TablesPage() {
   };
 
   const renderTable = (table, isSweetheart = false) => {
-    const effectiveCapacity = isSweetheart ? 2 : 10;
+    const effectiveCapacity = getTableCapacity(table);
     const isFull = table.guests.length >= effectiveCapacity;
 
     return (
@@ -304,7 +349,7 @@ function TablesPage() {
               </h2>
             </div>
 
-            <div className="flex flex-col items-end gap-2 shrink-0">
+            <div className="flex items-center gap-2 shrink-0">
               <span
                 className={`rounded-full px-3 py-1 text-xs font-semibold wos-table-capacity-badge ${
                   isFull
@@ -317,12 +362,14 @@ function TablesPage() {
                 {table.guests.length}/{effectiveCapacity}
               </span>
 
-              {!isSweetheart && (
+              <div className="flex items-center gap-1">
                 <button
                   type="button"
-                  onClick={() => setTableToDelete(table)}
-                  aria-label={t("tables.deleteTableAria")}
-                  className={`flex h-8 w-8 items-center justify-center rounded-xl border wos-table-delete-btn transition-all duration-200 hover:border-red-200 hover:bg-red-50 hover:text-red-600 focus-visible:opacity-100 ${
+                  onClick={() => setTableToEdit(table)}
+                  aria-label={t("tables.editTableAria")}
+                  className={`flex h-8 w-8 items-center justify-center rounded-xl border wos-table-action-btn transition-all duration-200 hover:border-[#660033]/20 hover:bg-[#fff0f3] hover:text-[#660033] focus-visible:opacity-100 ${
+                    isSweetheart ? "border-white/20 text-white hover:bg-white/10" : ""
+                  } ${
                     prefersTapLayout
                       ? "opacity-100"
                       : "opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto"
@@ -339,16 +386,49 @@ function TablesPage() {
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
-                      d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m-9 0 10a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V7H8z"
+                      d="M4 20h4l10.5-10.5a1.5 1.5 0 0 0-4.24-4.24L3.76 15.76A1 1 0 0 0 4 17v3z"
                     />
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
-                      d="M10 11v6M14 11v6"
+                      d="M14 4l6 6"
                     />
                   </svg>
                 </button>
-              )}
+
+                {!isSweetheart && (
+                  <button
+                    type="button"
+                    onClick={() => setTableToDelete(table)}
+                    aria-label={t("tables.deleteTableAria")}
+                    className={`flex h-8 w-8 items-center justify-center rounded-xl border wos-table-delete-btn transition-all duration-200 hover:border-red-200 hover:bg-red-50 hover:text-red-600 focus-visible:opacity-100 ${
+                      prefersTapLayout
+                        ? "opacity-100"
+                        : "opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto"
+                    }`}
+                  >
+                    <svg
+                      aria-hidden="true"
+                      viewBox="0 0 24 24"
+                      className="h-3.5 w-3.5"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.8"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m-9 0 10a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V7H8z"
+                      />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M10 11v6M14 11v6"
+                      />
+                    </svg>
+                  </button>
+                )}
+              </div>
             </div>
           </div>
 
@@ -456,17 +536,29 @@ function TablesPage() {
 
             <div className="flex flex-col sm:items-end gap-3">
               {tables.length > 0 && (
-                <button
-                  type="button"
-                  onClick={handleAddTable}
-                  disabled={isAddingTable}
-                  className="inline-flex items-center justify-center gap-2 rounded-full border border-[#eadde2] bg-white/90 px-5 py-2.5 text-sm font-semibold text-[#660033] shadow-[0_8px_24px_rgba(80,40,55,0.06)] transition hover:bg-[#fff8fa] hover:-translate-y-0.5 disabled:opacity-60 disabled:hover:translate-y-0"
-                >
-                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#fff0f3] text-base leading-none">
-                    +
-                  </span>
-                  {isAddingTable ? t("tables.addingTable") : t("tables.addTable")}
-                </button>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={handleAddTable}
+                    disabled={isAddingTable}
+                    className="inline-flex items-center justify-center gap-2 rounded-full border border-[#eadde2] bg-white/90 px-5 py-2.5 text-sm font-semibold text-[#660033] shadow-[0_8px_24px_rgba(80,40,55,0.06)] transition hover:bg-[#fff8fa] hover:-translate-y-0.5 disabled:opacity-60 disabled:hover:translate-y-0"
+                  >
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#fff0f3] text-base leading-none">
+                      +
+                    </span>
+                    {isAddingTable ? t("tables.addingTable") : t("tables.addTable")}
+                  </button>
+
+                  {regularTables.length >= 2 && (
+                    <button
+                      type="button"
+                      onClick={() => setIsMergeModalOpen(true)}
+                      className="inline-flex items-center justify-center gap-2 rounded-full border border-[#eadde2] bg-white/90 px-5 py-2.5 text-sm font-semibold text-[#660033] shadow-[0_8px_24px_rgba(80,40,55,0.06)] transition hover:bg-[#fff8fa] hover:-translate-y-0.5"
+                    >
+                      {t("tables.mergeTables")}
+                    </button>
+                  )}
+                </div>
               )}
 
               <p className="text-sm text-[#8d7380]">
@@ -568,6 +660,22 @@ function TablesPage() {
         table={tableToDelete}
         onClose={() => setTableToDelete(null)}
         onConfirm={handleConfirmDeleteTable}
+      />
+
+      <EditTableModal
+        open={Boolean(tableToEdit)}
+        table={tableToEdit}
+        onClose={() => setTableToEdit(null)}
+        onSave={handleSaveTableEdit}
+        saving={isSavingTable}
+      />
+
+      <MergeTablesModal
+        open={isMergeModalOpen}
+        tables={regularTables}
+        onClose={() => setIsMergeModalOpen(false)}
+        onConfirm={handleConfirmMergeTables}
+        saving={isMergingTables}
       />
     </div>
   );
