@@ -323,7 +323,7 @@ function TablesPage() {
         onDrop={prefersTapLayout ? undefined : () => handleDropOnTable(table)}
         className={`group relative overflow-hidden border transition wos-table-card ${
           isSweetheart
-            ? "rounded-[2.5rem] bg-gradient-to-br from-[#660033] to-[#38131f] text-white border-[#8c295b] shadow-[0_25px_70px_rgba(102,0,51,0.25)] p-6"
+            ? "wos-table-card-sweetheart rounded-[2.5rem] bg-gradient-to-br from-[#660033] to-[#38131f] text-white border-[#8c295b] shadow-[0_25px_70px_rgba(102,0,51,0.25)] p-6"
             : "wos-table-card-regular rounded-[2rem] p-4 sm:p-5 hover:-translate-y-1"
         }`}
       >

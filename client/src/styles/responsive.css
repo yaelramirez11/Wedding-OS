@@ -146,6 +146,14 @@ body,
   color: #38131f;
 }
 
+.wos-table-card-sweetheart .wos-table-card-label {
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.wos-table-card-sweetheart .wos-table-card-title {
+  color: #fff;
+}
+
 .wos-table-capacity-badge {
   background: #fff8fa;
   color: #8d7380;
@@ -175,6 +183,14 @@ body,
 
 [data-theme="dark"] .wos-table-card-title {
   color: var(--wos-heading);
+}
+
+[data-theme="dark"] .wos-table-card-sweetheart .wos-table-card-label {
+  color: rgba(255, 255, 255, 0.72);
+}
+
+[data-theme="dark"] .wos-table-card-sweetheart .wos-table-card-title {
+  color: #fff;
 }
 
 [data-theme="dark"] .wos-table-capacity-badge {
