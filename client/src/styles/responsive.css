@@ -154,6 +154,20 @@ body,
   color: #fff;
 }
 
+.wos-table-merged-badge {
+  display: inline-flex;
+  align-items: center;
+  margin-top: 0.35rem;
+  border-radius: 9999px;
+  background: rgba(102, 0, 51, 0.08);
+  color: #660033;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 0.2rem 0.55rem;
+}
+
 .wos-table-capacity-badge {
   background: #fff8fa;
   color: #8d7380;
