@@ -89,6 +89,20 @@ const updateTable = async (userId, id, data) => {
     payload.capacity = data.capacity;
   }
 
+  if (data.name != null && table.mergeMeta) {
+    throw createError(
+      "Rename the table after splitting the merged tables.",
+      400,
+    );
+  }
+
+  if (data.capacity != null && table.mergeMeta) {
+    throw createError(
+      "Change capacity after splitting the merged tables.",
+      400,
+    );
+  }
+
   return updateOwned(prisma.weddingTable, userId, id, payload);
 };
 
@@ -132,7 +146,9 @@ const mergeTables = async (
     throw createError("The sweetheart table cannot be merged.", 400);
   }
 
-  const baseCapacity = getCapacityForTable(primary) + getCapacityForTable(secondary);
+  const primaryCapacity = getCapacityForTable(primary);
+  const secondaryCapacity = getCapacityForTable(secondary);
+  const baseCapacity = primaryCapacity + secondaryCapacity;
   const mergedCapacity = addExtraSeat ? baseCapacity + 1 : baseCapacity;
   const totalGuests = primary.guests.length + secondary.guests.length;
 
@@ -143,58 +159,31 @@ const mergeTables = async (
     );
   }
 
-  const occupiedSeats = new Set(
-    primary.guests
-      .map((guest) => guest.seatIndex)
-      .filter((index) => index != null && index >= 0),
-  );
-
-  let nextSeat = 0;
-  const findNextOpenSeat = () => {
-    while (nextSeat < mergedCapacity && occupiedSeats.has(nextSeat)) {
-      nextSeat += 1;
-    }
-
-    if (nextSeat >= mergedCapacity) {
-      return null;
-    }
-
-    const seat = nextSeat;
-    occupiedSeats.add(seat);
-    nextSeat += 1;
-    return seat;
-  };
-
   const guestUpdates = [];
+  let nextSecondarySeat = primaryCapacity;
 
   for (const guest of secondary.guests) {
-    let seatIndex = guest.seatIndex;
-
-    if (
-      seatIndex == null ||
-      seatIndex < 0 ||
-      seatIndex >= mergedCapacity ||
-      occupiedSeats.has(seatIndex)
-    ) {
-      seatIndex = findNextOpenSeat();
-    } else {
-      occupiedSeats.add(seatIndex);
-    }
-
-    if (seatIndex == null) {
-      throw createError("Could not assign seats for all merged guests.", 400);
-    }
-
     guestUpdates.push(
       prisma.guest.update({
         where: { id: guest.id },
         data: {
           tableId: primary.id,
-          seatIndex,
+          seatIndex: nextSecondarySeat,
         },
       }),
     );
+    nextSecondarySeat += 1;
   }
+
+  const mergeMeta = {
+    primaryName: primary.name,
+    partnerName: secondary.name,
+    partnerLabel: secondary.label,
+    partnerOrder: secondary.order,
+    primaryCapacity,
+    secondaryCapacity,
+    addExtraSeat: Boolean(addExtraSeat),
+  };
 
   await prisma.$transaction([
     ...guestUpdates,
@@ -205,12 +194,116 @@ const mergeTables = async (
         label: label ?? null,
         order: order ?? primary.order,
         capacity: mergedCapacity,
+        mergeMeta,
       },
     }),
     prisma.weddingTable.delete({
       where: { id: secondary.id },
     }),
   ]);
+
+  return getTables(userId);
+};
+
+const unmergeTable = async (userId, tableId) => {
+  const table = await prisma.weddingTable.findFirst({
+    where: {
+      id: Number(tableId),
+      userId,
+    },
+    include: {
+      guests: {
+        where: { userId },
+        orderBy: [{ seatIndex: "asc" }, { createdAt: "asc" }],
+      },
+    },
+  });
+
+  if (!table) {
+    throw notFoundError();
+  }
+
+  if (!table.mergeMeta) {
+    throw createError("This table is not a merged table.", 400);
+  }
+
+  const {
+    primaryName,
+    partnerName,
+    partnerLabel,
+    partnerOrder,
+    primaryCapacity,
+    secondaryCapacity,
+  } = table.mergeMeta;
+
+  const primaryGuests = [];
+  const secondaryGuests = [];
+
+  for (const guest of table.guests) {
+    if (guest.seatIndex != null && guest.seatIndex >= primaryCapacity) {
+      secondaryGuests.push(guest);
+    } else {
+      primaryGuests.push(guest);
+    }
+  }
+
+  if (primaryGuests.length > primaryCapacity) {
+    throw createError(
+      "Too many guests are assigned to the first table section.",
+      400,
+    );
+  }
+
+  if (secondaryGuests.length > secondaryCapacity) {
+    throw createError(
+      "Too many guests are assigned to the second table section.",
+      400,
+    );
+  }
+
+  const recreatedSecondary = await prisma.weddingTable.create({
+    data: {
+      name: partnerName,
+      label: partnerLabel ?? null,
+      order: partnerOrder ?? table.order + 1,
+      capacity: secondaryCapacity,
+      userId,
+    },
+  });
+
+  const guestUpdates = [
+    ...primaryGuests.map((guest) =>
+      prisma.guest.update({
+        where: { id: guest.id },
+        data: {
+          tableId: table.id,
+          seatIndex: guest.seatIndex,
+        },
+      }),
+    ),
+    ...secondaryGuests.map((guest) =>
+      prisma.guest.update({
+        where: { id: guest.id },
+        data: {
+          tableId: recreatedSecondary.id,
+          seatIndex:
+            guest.seatIndex != null
+              ? guest.seatIndex - primaryCapacity
+              : null,
+        },
+      }),
+    ),
+    prisma.weddingTable.update({
+      where: { id: table.id },
+      data: {
+        name: primaryName || table.name,
+        capacity: primaryCapacity,
+        mergeMeta: null,
+      },
+    }),
+  ];
+
+  await prisma.$transaction(guestUpdates);
 
   return getTables(userId);
 };
@@ -413,6 +506,7 @@ module.exports = {
   createTable,
   updateTable,
   mergeTables,
+  unmergeTable,
   deleteTable,
   assignGuestToTable,
   getUnseatedGuests,

@@ -86,12 +86,31 @@ export function buildSeatLayout(capacity, isSweetheart = false) {
     return REGULAR_SEAT_LAYOUT;
   }
 
-  return Array.from({ length: capacity }, (_, index) => ({
-    index,
-    key: `grid-${index}`,
-  }));
+  const layout = [{ index: 0, key: "head" }];
+  const sideTotal = Math.max(capacity - 2, 0);
+  const leftCount = Math.floor(sideTotal / 2);
+  const rightCount = sideTotal - leftCount;
+
+  for (let index = 0; index < leftCount; index += 1) {
+    layout.push({ index: 1 + index, key: `left-${index}` });
+  }
+
+  for (let index = 0; index < rightCount; index += 1) {
+    layout.push({ index: 1 + leftCount + index, key: `right-${index}` });
+  }
+
+  if (capacity > 1) {
+    layout.push({ index: capacity - 1, key: "foot" });
+  }
+
+  return layout;
 }
 
-export function isGridSeatLayout(capacity, isSweetheart = false) {
-  return !isSweetheart && capacity !== 10;
+export function isLargeBanquetLayout(capacity, isSweetheart = false) {
+  return !isSweetheart && capacity > 10;
+}
+
+export function getSeatPositionKey(seatIndex, capacity, isSweetheart = false) {
+  const layout = buildSeatLayout(capacity, isSweetheart);
+  return layout.find((seat) => seat.index === seatIndex)?.key || `seat-${seatIndex}`;
 }

@@ -22,6 +22,12 @@ export const mergeTables = async (data) =>
     body: JSON.stringify(data),
   });
 
+export const unmergeTable = async (tableId) =>
+  apiFetch("/tables/unmerge", {
+    method: "POST",
+    body: JSON.stringify({ tableId }),
+  });
+
 export const deleteTable = async (tableId) =>
   apiFetch(`/tables/${tableId}`, {
     method: "DELETE",

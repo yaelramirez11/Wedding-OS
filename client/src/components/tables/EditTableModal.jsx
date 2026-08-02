@@ -11,16 +11,27 @@ import {
 } from "../../i18n/helpers.js";
 import { getTableCapacity } from "./tableSeatingUtils.js";
 
-function EditTableModal({ open, table, onClose, onSave, saving }) {
+function EditTableModal({
+  open,
+  table,
+  onClose,
+  onSave,
+  onSplit,
+  saving,
+  splitting,
+}) {
   const { t } = useTranslation();
-  const labelOptions = useMemo(() => getTableLabelOptions(t), [t]);
   const isSweetheart = table?.name === SWEETHEART_TABLE_NAME;
+  const labelOptions = useMemo(
+    () => getTableLabelOptions(t, { includeBrideAndGroom: isSweetheart }),
+    [t, isSweetheart],
+  );
+  const isMerged = Boolean(table?.mergeMeta);
 
   const [tableNumber, setTableNumber] = useState("");
   const [customName, setCustomName] = useState("");
   const [useCustomName, setUseCustomName] = useState(false);
   const [labelValue, setLabelValue] = useState("family");
-  const [customLabel, setCustomLabel] = useState("");
   const [order, setOrder] = useState(1);
   const [capacity, setCapacity] = useState(10);
 
@@ -32,11 +43,6 @@ function EditTableModal({ open, table, onClose, onSave, saving }) {
     setCustomName(table.name);
     setUseCustomName(parsedNumber === "");
     setLabelValue(resolveTableLabelValue(table.label, labelOptions));
-    setCustomLabel(
-      resolveTableLabelValue(table.label, labelOptions) === "custom"
-        ? table.label || ""
-        : "",
-    );
     setOrder(table.order ?? 1);
     setCapacity(getTableCapacity(table));
   }, [open, table, labelOptions]);
@@ -57,10 +63,10 @@ function EditTableModal({ open, table, onClose, onSave, saving }) {
     if (!name) return;
 
     onSave({
-      name: isSweetheart ? undefined : name,
-      label: resolveTableLabelText(labelValue, customLabel, labelOptions) || null,
+      name: isSweetheart || isMerged ? undefined : name,
+      label: resolveTableLabelText(labelValue, labelOptions),
       order: Number(order) || table.order,
-      capacity: isSweetheart ? undefined : Number(capacity),
+      capacity: isSweetheart || isMerged ? undefined : Number(capacity),
     });
   };
 
@@ -81,8 +87,27 @@ function EditTableModal({ open, table, onClose, onSave, saving }) {
           </span>
         </p>
 
+        {isMerged && (
+          <div className="mt-5 rounded-2xl border border-[#eadde2] bg-[#fff8fa] px-4 py-4">
+            <p className="text-sm font-medium wos-text-heading">
+              {t("tables.mergedTableNotice")}
+            </p>
+            <p className="text-xs wos-text-muted mt-2 leading-relaxed">
+              {t("tables.mergedTableNoticeHint")}
+            </p>
+            <button
+              type="button"
+              onClick={onSplit}
+              disabled={splitting}
+              className="mt-4 w-full rounded-2xl border border-[#660033]/15 bg-white px-4 py-3 text-sm font-semibold text-[#660033] transition hover:bg-[#fff0f3] disabled:opacity-50"
+            >
+              {splitting ? t("tables.splittingTables") : t("tables.splitTables")}
+            </button>
+          </div>
+        )}
+
         <div className="mt-6 space-y-4">
-          {!isSweetheart && (
+          {!isSweetheart && !isMerged && (
             <>
               <label className="block space-y-2">
                 <span className="text-sm font-medium wos-text-heading">
@@ -159,19 +184,6 @@ function EditTableModal({ open, table, onClose, onSave, saving }) {
               ))}
             </select>
           </label>
-
-          {labelValue === "custom" && (
-            <label className="block space-y-2">
-              <span className="text-sm font-medium wos-text-heading">
-                {t("tables.customGroupLabel")}
-              </span>
-              <input
-                value={customLabel}
-                onChange={(event) => setCustomLabel(event.target.value)}
-                className="wos-input"
-              />
-            </label>
-          )}
 
           <label className="block space-y-2">
             <span className="text-sm font-medium wos-text-heading">

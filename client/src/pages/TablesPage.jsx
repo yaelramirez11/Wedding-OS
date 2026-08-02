@@ -13,6 +13,7 @@ import {
   createTable,
   updateTable,
   mergeTables,
+  unmergeTable,
   deleteTable,
   assignGuestToTable,
 } from "../services/tableService";
@@ -44,6 +45,7 @@ function TablesPage() {
   const [isMergeModalOpen, setIsMergeModalOpen] = useState(false);
   const [isSavingTable, setIsSavingTable] = useState(false);
   const [isMergingTables, setIsMergingTables] = useState(false);
+  const [isSplittingTables, setIsSplittingTables] = useState(false);
   const [seatModalGuest, setSeatModalGuest] = useState(null);
   const [selectedGuestId, setSelectedGuestId] = useState(null);
 
@@ -85,6 +87,8 @@ function TablesPage() {
   const regularTables = tables
     .filter((table) => table.name !== SWEETHEART_TABLE_NAME)
     .sort((a, b) => a.order - b.order);
+
+  const mergeableTables = regularTables.filter((table) => !table.mergeMeta);
 
   const sweetheartTable = tables.find(
     (table) => table.name === SWEETHEART_TABLE_NAME,
@@ -172,6 +176,26 @@ function TablesPage() {
       setMessage(error.message || t("tables.mergeTablesError"));
     } finally {
       setIsMergingTables(false);
+      setTimeout(() => setMessage(""), 2500);
+    }
+  };
+
+  const handleSplitTable = async () => {
+    if (!tableToEdit?.mergeMeta) return;
+
+    try {
+      setIsSplittingTables(true);
+      const tablesData = await unmergeTable(tableToEdit.id);
+      setTables(tablesData);
+      const guestsData = await fetchUnseatedGuests();
+      setUnseatedGuests(guestsData);
+      setTableToEdit(null);
+      setMessage(t("tables.splitTablesSuccess"));
+    } catch (error) {
+      console.error(error);
+      setMessage(error.message || t("tables.splitTablesError"));
+    } finally {
+      setIsSplittingTables(false);
       setTimeout(() => setMessage(""), 2500);
     }
   };
@@ -315,6 +339,7 @@ function TablesPage() {
   const renderTable = (table, isSweetheart = false) => {
     const effectiveCapacity = getTableCapacity(table);
     const isFull = table.guests.length >= effectiveCapacity;
+    const isWideTable = !isSweetheart && effectiveCapacity > 10;
 
     return (
       <article
@@ -324,7 +349,9 @@ function TablesPage() {
         className={`group relative overflow-hidden border transition wos-table-card ${
           isSweetheart
             ? "wos-table-card-sweetheart rounded-[2.5rem] bg-gradient-to-br from-[#660033] to-[#38131f] text-white border-[#8c295b] shadow-[0_25px_70px_rgba(102,0,51,0.25)] p-6"
-            : "wos-table-card-regular rounded-[2rem] p-4 sm:p-5 hover:-translate-y-1"
+            : `wos-table-card-regular rounded-[2rem] p-4 sm:p-5 hover:-translate-y-1 ${
+                isWideTable ? "wos-table-card-wide" : ""
+              }`
         }`}
       >
         <div className="absolute -right-10 -top-10 h-28 w-28 rounded-full bg-[#fff0f3]/40 wos-table-card-glow" />
@@ -338,6 +365,7 @@ function TablesPage() {
                 }`}
               >
                 {table.label || t("tables.defaultTableLabel")}
+                {table.mergeMeta ? ` · ${t("tables.mergedBadge")}` : ""}
               </p>
 
               <h2
@@ -549,7 +577,7 @@ function TablesPage() {
                     {isAddingTable ? t("tables.addingTable") : t("tables.addTable")}
                   </button>
 
-                  {regularTables.length >= 2 && (
+                  {mergeableTables.length >= 2 && (
                     <button
                       type="button"
                       onClick={() => setIsMergeModalOpen(true)}
@@ -667,12 +695,14 @@ function TablesPage() {
         table={tableToEdit}
         onClose={() => setTableToEdit(null)}
         onSave={handleSaveTableEdit}
+        onSplit={handleSplitTable}
         saving={isSavingTable}
+        splitting={isSplittingTables}
       />
 
       <MergeTablesModal
         open={isMergeModalOpen}
-        tables={regularTables}
+        tables={mergeableTables}
         onClose={() => setIsMergeModalOpen(false)}
         onConfirm={handleConfirmMergeTables}
         saving={isMergingTables}

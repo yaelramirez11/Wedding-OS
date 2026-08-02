@@ -27,7 +27,6 @@ function MergeTablesModal({
   const [secondaryTableId, setSecondaryTableId] = useState("");
   const [mergedName, setMergedName] = useState("");
   const [labelValue, setLabelValue] = useState("family");
-  const [customLabel, setCustomLabel] = useState("");
   const [order, setOrder] = useState(1);
   const [addExtraSeat, setAddExtraSeat] = useState(false);
 
@@ -41,7 +40,6 @@ function MergeTablesModal({
     setSecondaryTableId(second ? String(second.id) : "");
     setMergedName(t("tables.defaultMergedName"));
     setLabelValue("family");
-    setCustomLabel("");
     setOrder(first?.order ?? 1);
     setAddExtraSeat(false);
   }, [open, regularTables, t]);
@@ -76,7 +74,7 @@ function MergeTablesModal({
       primaryTableId: primaryTable.id,
       secondaryTableId: secondaryTable.id,
       name: mergedName.trim(),
-      label: resolveTableLabelText(labelValue, customLabel, labelOptions) || null,
+      label: resolveTableLabelText(labelValue, labelOptions),
       order: Number(order) || primaryTable.order,
       addExtraSeat,
     });
@@ -163,19 +161,6 @@ function MergeTablesModal({
                 ))}
               </select>
             </label>
-
-            {labelValue === "custom" && (
-              <label className="block space-y-2">
-                <span className="text-sm font-medium wos-text-heading">
-                  {t("tables.customGroupLabel")}
-                </span>
-                <input
-                  value={customLabel}
-                  onChange={(event) => setCustomLabel(event.target.value)}
-                  className="wos-input"
-                />
-              </label>
-            )}
 
             <label className="block space-y-2">
               <span className="text-sm font-medium wos-text-heading">

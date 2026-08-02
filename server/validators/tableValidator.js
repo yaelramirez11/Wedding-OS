@@ -29,6 +29,10 @@ const mergeTablesSchema = z.object({
   addExtraSeat: z.boolean().optional().default(false),
 });
 
+const unmergeTableSchema = z.object({
+  tableId: z.number().int(),
+});
+
 const assignGuestSchema = z.object({
   guestId: z.number().int(),
   tableId: z.number().int().nullable(),
@@ -39,5 +43,6 @@ module.exports = {
   createTableSchema,
   updateTableSchema,
   mergeTablesSchema,
+  unmergeTableSchema,
   assignGuestSchema,
 };

@@ -3,6 +3,7 @@ const {
   createTable,
   updateTable,
   mergeTables,
+  unmergeTable,
   deleteTable,
   assignGuestToTable,
   getUnseatedGuests,
@@ -12,6 +13,7 @@ const {
   createTableSchema,
   updateTableSchema,
   mergeTablesSchema,
+  unmergeTableSchema,
   assignGuestSchema,
 } = require("../validators/tableValidator");
 
@@ -63,6 +65,16 @@ const mergeExistingTables = async (req, res, next) => {
   }
 };
 
+const splitMergedTable = async (req, res, next) => {
+  try {
+    const data = unmergeTableSchema.parse(req.body);
+    const tables = await unmergeTable(req.user.userId, data.tableId);
+    res.json(tables);
+  } catch (error) {
+    next(error);
+  }
+};
+
 const removeTable = async (req, res, next) => {
   try {
     await deleteTable(req.user.userId, req.params.id);
@@ -89,6 +101,7 @@ module.exports = {
   createNewTable,
   updateExistingTable,
   mergeExistingTables,
+  splitMergedTable,
   removeTable,
   moveGuest,
   getGuestsWithoutTable,

@@ -224,6 +224,7 @@ model WeddingTable {
   label     String?
   order     Int      @default(0)
   capacity  Int      @default(10)
+  mergeMeta Json?
   createdAt DateTime @default(now())
   userId    Int?
   user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)

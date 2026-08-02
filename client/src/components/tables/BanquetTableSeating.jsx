@@ -1,7 +1,7 @@
 import {
   buildSeatSlots,
   buildSeatLayout,
-  isGridSeatLayout,
+  isLargeBanquetLayout,
   SWEETHEART_SEAT_LAYOUT,
 } from "./tableSeatingUtils.js";
 
@@ -25,30 +25,30 @@ function BanquetTableSeating({
   const layout = isSweetheart
     ? SWEETHEART_SEAT_LAYOUT
     : buildSeatLayout(capacity, isSweetheart);
-  const useGridLayout = isGridSeatLayout(capacity, isSweetheart);
+  const isLargeLayout = isLargeBanquetLayout(capacity, isSweetheart);
 
   const renderSeat = (seatIndex, position) => {
     const guest = slots[seatIndex];
     const isSelected = guest && guest.id === selectedGuestId;
 
-    const dragProps =
-      guest && !prefersTapLayout
-        ? {
-            draggable: true,
-            onDragStart: () => onDragStart(guest),
-          }
-        : {};
-
-    const dropProps = !prefersTapLayout
+    const dragProps = guest
       ? {
-          onDragOver: (event) => event.preventDefault(),
-          onDrop: (event) => {
-            event.preventDefault();
+          draggable: true,
+          onDragStart: (event) => {
             event.stopPropagation();
-            onSeatDrop(table, seatIndex);
+            onDragStart(guest);
           },
         }
       : {};
+
+    const dropProps = {
+      onDragOver: (event) => event.preventDefault(),
+      onDrop: (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        onSeatDrop(table, seatIndex);
+      },
+    };
 
     const statusLabel = guest
       ? statusConfig[guest.status]?.label || statusConfig.pending.label
@@ -107,21 +107,13 @@ function BanquetTableSeating({
           role={prefersTapLayout ? "button" : undefined}
           tabIndex={prefersTapLayout ? 0 : undefined}
           onClick={
-            prefersTapLayout ? () => onGuestClick(guest) : undefined
-          }
-          onKeyDown={
-            prefersTapLayout
-              ? (event) => {
-                  if (event.key === "Enter" || event.key === " ") {
-                    event.preventDefault();
-                    onGuestClick(guest);
-                  }
-                }
+            prefersTapLayout && !guest
+              ? () => onGuestClick(guest)
               : undefined
           }
           className={`wos-banquet-seat ${
             isDark ? "wos-banquet-seat-dark" : "wos-banquet-seat-light"
-          } ${prefersTapLayout ? "wos-banquet-seat-tap" : "wos-banquet-seat-drag"}`}
+          } wos-banquet-seat-drag`}
         >
           <span className="wos-banquet-seat-name">{guest.name}</span>
         </div>
@@ -146,26 +138,22 @@ function BanquetTableSeating({
     );
   }
 
-  if (useGridLayout) {
-    return (
-      <div className="wos-banquet-layout wos-banquet-layout-grid">
-        <div className="wos-banquet-grid">
-          {layout.map((seat) => renderSeat(seat.index, seat.key))}
-        </div>
-      </div>
-    );
-  }
-
   const headSeat = layout.find((seat) => seat.key === "head");
   const footSeat = layout.find((seat) => seat.key === "foot");
   const leftSeats = layout.filter((seat) => seat.key.startsWith("left-"));
   const rightSeats = layout.filter((seat) => seat.key.startsWith("right-"));
 
   return (
-    <div className="wos-banquet-layout">
-      <div className="wos-banquet-head">
-        {renderSeat(headSeat.index, headSeat.key)}
-      </div>
+    <div
+      className={`wos-banquet-layout ${
+        isLargeLayout ? "wos-banquet-layout-large" : ""
+      }`}
+    >
+      {headSeat && (
+        <div className="wos-banquet-head">
+          {renderSeat(headSeat.index, headSeat.key)}
+        </div>
+      )}
 
       <div className="wos-banquet-body">
         <div className="wos-banquet-side">
@@ -173,7 +161,9 @@ function BanquetTableSeating({
         </div>
 
         <div
-          className={`wos-banquet-surface ${isDark ? "wos-banquet-surface-dark" : ""}`}
+          className={`wos-banquet-surface ${
+            isDark ? "wos-banquet-surface-dark" : ""
+          }`}
           aria-hidden="true"
         />
 
@@ -182,9 +172,11 @@ function BanquetTableSeating({
         </div>
       </div>
 
-      <div className="wos-banquet-foot">
-        {renderSeat(footSeat.index, footSeat.key)}
-      </div>
+      {footSeat && (
+        <div className="wos-banquet-foot">
+          {renderSeat(footSeat.index, footSeat.key)}
+        </div>
+      )}
     </div>
   );
 }

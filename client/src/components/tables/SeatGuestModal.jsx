@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 
 import BanquetTableSeating from "./BanquetTableSeating.jsx";
-import { buildSeatSlots, getTableCapacity } from "./tableSeatingUtils.js";
+import { buildSeatSlots, getTableCapacity, getSeatPositionKey } from "./tableSeatingUtils.js";
 import { useTranslation } from "../../context/PreferencesContext.jsx";
 import {
   getGuestStatusConfig,
@@ -173,6 +173,8 @@ function SeatGuestModal({
                 ).map((occupant, seatIndex) => {
                   const isTaken = Boolean(occupant);
                   const capacity = getTableCapacity(selectedTable);
+                  const isSweetheartTable =
+                    selectedTable.name === SWEETHEART_TABLE_NAME;
                   const seatLabels = [
                     t("tables.seats.head"),
                     t("tables.seats.left1"),
@@ -186,7 +188,7 @@ function SeatGuestModal({
                     t("tables.seats.foot"),
                   ];
 
-                  if (selectedTable.name === SWEETHEART_TABLE_NAME) {
+                  if (isSweetheartTable) {
                     return (
                       <button
                         key={seatIndex}
@@ -220,7 +222,15 @@ function SeatGuestModal({
                     >
                       {capacity === 10
                         ? seatLabels[seatIndex]
-                        : `${t("tables.seatNumber")} ${seatIndex + 1}`}
+                        : getSeatPositionKey(seatIndex, capacity).startsWith("left")
+                          ? `${t("tables.seats.left")} ${seatIndex}`
+                          : getSeatPositionKey(seatIndex, capacity).startsWith("right")
+                            ? `${t("tables.seats.right")} ${seatIndex}`
+                            : getSeatPositionKey(seatIndex, capacity) === "head"
+                              ? t("tables.seats.head")
+                              : getSeatPositionKey(seatIndex, capacity) === "foot"
+                                ? t("tables.seats.foot")
+                                : `${t("tables.seatNumber")} ${seatIndex + 1}`}
                     </button>
                   );
                 })}

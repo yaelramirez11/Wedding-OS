@@ -287,31 +287,33 @@ export const getNextRegularTableConfig = (t, regularTables) => {
   };
 };
 
-export const getTableLabelOptions = (t) => [
-  { value: "family", label: t("tables.labels.family") },
-  { value: "friends", label: t("tables.labels.friends") },
-  { value: "brideSide", label: t("tables.labels.brideSide") },
-  { value: "groomSide", label: t("tables.labels.groomSide") },
-  { value: "specialGuests", label: t("tables.labels.specialGuests") },
-  { value: "brideAndGroom", label: t("tables.labels.brideAndGroom") },
-  { value: "newTable", label: t("tables.labels.newTable") },
-  { value: "custom", label: t("tables.labels.custom") },
-];
+export const getTableLabelOptions = (t, { includeBrideAndGroom = false } = {}) => {
+  const options = [
+    { value: "family", label: t("tables.labels.family") },
+    { value: "friends", label: t("tables.labels.friends") },
+    { value: "brideSide", label: t("tables.labels.brideSide") },
+    { value: "groomSide", label: t("tables.labels.groomSide") },
+  ];
 
-export const resolveTableLabelValue = (label, options) => {
-  if (!label) return "custom";
-
-  const match = options.find((option) => option.label === label);
-  return match ? match.value : "custom";
-};
-
-export const resolveTableLabelText = (value, customLabel, options) => {
-  if (value === "custom") {
-    return customLabel.trim();
+  if (includeBrideAndGroom) {
+    options.push({
+      value: "brideAndGroom",
+      label: t("tables.labels.brideAndGroom"),
+    });
   }
 
-  return options.find((option) => option.value === value)?.label || customLabel.trim();
+  return options;
 };
+
+export const resolveTableLabelValue = (label, options) => {
+  if (!label) return options[0]?.value || "family";
+
+  const match = options.find((option) => option.label === label);
+  return match ? match.value : options[0]?.value || "family";
+};
+
+export const resolveTableLabelText = (value, options) =>
+  options.find((option) => option.value === value)?.label || null;
 
 export const parseTableNumber = (name) => {
   const match = /^Table (\d+)$/.exec(name || "");

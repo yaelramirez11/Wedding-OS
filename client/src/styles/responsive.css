@@ -410,6 +410,7 @@ body,
 
 .wos-banquet-seat-drag {
   cursor: grab;
+  touch-action: none;
 }
 
 .wos-banquet-seat-drag:active {
@@ -471,6 +472,39 @@ body,
 @media (min-width: 1024px) {
   .wos-banquet-grid {
     grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.wos-banquet-layout-large .wos-banquet-side {
+  gap: 0.28rem;
+}
+
+.wos-banquet-layout-large .wos-banquet-seat {
+  min-height: 1.45rem;
+  font-size: 0.62rem;
+  padding: 0.28rem 0.45rem 0.28rem 0.55rem;
+}
+
+.wos-banquet-layout-large .wos-banquet-seat-empty {
+  font-size: 0.56rem;
+}
+
+.wos-banquet-layout-large .wos-banquet-surface {
+  min-height: 100%;
+}
+
+.wos-banquet-layout-large .wos-banquet-body {
+  min-height: 11rem;
+}
+
+.wos-banquet-layout-large .wos-banquet-side,
+.wos-banquet-layout-large .wos-banquet-surface {
+  min-height: 11rem;
+}
+
+@media (min-width: 900px) {
+  .wos-table-card-wide {
+    grid-column: 1 / -1;
   }
 }
 
