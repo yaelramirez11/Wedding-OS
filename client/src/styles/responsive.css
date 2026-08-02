@@ -157,7 +157,7 @@ body,
 .wos-table-merged-badge {
   display: inline-flex;
   align-items: center;
-  margin-top: 0.35rem;
+  flex-shrink: 0;
   border-radius: 9999px;
   background: rgba(102, 0, 51, 0.08);
   color: #660033;
@@ -166,6 +166,126 @@ body,
   letter-spacing: 0.04em;
   text-transform: uppercase;
   padding: 0.2rem 0.55rem;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.wos-table-card-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem 1rem;
+}
+
+.wos-table-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.5rem;
+}
+
+.wos-table-card-label {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.wos-table-card-title {
+  margin-top: 0.35rem;
+  font-family: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+  font-size: clamp(1.125rem, 4vw, 1.5rem);
+  font-weight: 600;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.wos-table-card-tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  flex-shrink: 0;
+  max-width: 100%;
+}
+
+.wos-table-card-icon-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.wos-table-split-btn {
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  border: 1px solid rgba(102, 0, 51, 0.15);
+  background: rgba(255, 255, 255, 0.92);
+  padding: 0.45rem 0.85rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #660033;
+  transition: background-color 0.18s ease;
+}
+
+.wos-table-split-btn:hover:not(:disabled) {
+  background: #fff0f3;
+}
+
+.wos-table-split-btn:disabled {
+  opacity: 0.5;
+}
+
+.wos-table-split-btn-mobile {
+  display: flex;
+  width: 100%;
+  margin-top: 0.75rem;
+}
+
+.wos-table-split-btn-desktop {
+  display: none;
+}
+
+.wos-table-card-split-row {
+  width: 100%;
+}
+
+@media (min-width: 640px) {
+  .wos-table-card-split-row {
+    display: none;
+  }
+
+  .wos-table-split-btn-desktop {
+    display: inline-flex;
+  }
+}
+
+.wos-tables-page {
+  touch-action: pan-y;
+}
+
+.wos-tables-page .wos-table-map,
+.wos-tables-page .wos-banquet-layout,
+.wos-tables-page .wos-table-card {
+  touch-action: pan-y;
+}
+
+.wos-unseated-list {
+  overflow: visible;
+}
+
+@media (min-width: 1536px) {
+  .wos-unseated-list {
+    max-height: 620px;
+    overflow-y: auto;
+    padding-right: 0.5rem;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
 }
 
 .wos-table-capacity-badge {
@@ -424,7 +544,7 @@ body,
 
 .wos-banquet-seat-drag {
   cursor: grab;
-  touch-action: none;
+  touch-action: pan-y;
 }
 
 .wos-banquet-seat-drag:active {

@@ -31,24 +31,27 @@ function BanquetTableSeating({
     const guest = slots[seatIndex];
     const isSelected = guest && guest.id === selectedGuestId;
 
-    const dragProps = guest
-      ? {
-          draggable: true,
-          onDragStart: (event) => {
-            event.stopPropagation();
-            onDragStart(guest);
-          },
-        }
-      : {};
+    const dragProps =
+      guest && !prefersTapLayout
+        ? {
+            draggable: true,
+            onDragStart: (event) => {
+              event.stopPropagation();
+              onDragStart(guest);
+            },
+          }
+        : {};
 
-    const dropProps = {
-      onDragOver: (event) => event.preventDefault(),
-      onDrop: (event) => {
-        event.preventDefault();
-        event.stopPropagation();
-        onSeatDrop(table, seatIndex);
-      },
-    };
+    const dropProps = prefersTapLayout
+      ? {}
+      : {
+          onDragOver: (event) => event.preventDefault(),
+          onDrop: (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            onSeatDrop(table, seatIndex);
+          },
+        };
 
     const statusLabel = guest
       ? statusConfig[guest.status]?.label || statusConfig.pending.label
@@ -107,13 +110,21 @@ function BanquetTableSeating({
           role={prefersTapLayout ? "button" : undefined}
           tabIndex={prefersTapLayout ? 0 : undefined}
           onClick={
-            prefersTapLayout && !guest
-              ? () => onGuestClick(guest)
+            prefersTapLayout && guest ? () => onGuestClick(guest) : undefined
+          }
+          onKeyDown={
+            prefersTapLayout && guest
+              ? (event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    onGuestClick(guest);
+                  }
+                }
               : undefined
           }
           className={`wos-banquet-seat ${
             isDark ? "wos-banquet-seat-dark" : "wos-banquet-seat-light"
-          } wos-banquet-seat-drag`}
+          } ${prefersTapLayout ? "wos-banquet-seat-tap" : "wos-banquet-seat-drag"}`}
         >
           <span className="wos-banquet-seat-name">{guest.name}</span>
         </div>

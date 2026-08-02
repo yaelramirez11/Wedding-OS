@@ -327,6 +327,15 @@ function TablesPage() {
     setSelectedGuestId(guest.id);
   };
 
+  const handleGuestSeatTap = (guest) => {
+    if (prefersTapLayout) {
+      setSelectedGuestId((current) => (current === guest.id ? null : guest.id));
+      return;
+    }
+
+    openSeatModal(guest);
+  };
+
   const selectGuestForSeating = (guest) => {
     if (prefersTapLayout) {
       openSeatModal(guest);
@@ -357,21 +366,25 @@ function TablesPage() {
         <div className="absolute -right-10 -top-10 h-28 w-28 rounded-full bg-[#fff0f3]/40 wos-table-card-glow" />
 
         <div className="relative z-10">
-          <div className="flex items-start justify-between gap-3">
-            <div className="min-w-0 flex-1">
-              <p
-                className={`text-xs font-semibold wos-table-card-label ${
-                  isSweetheart ? "text-white/60" : ""
-                }`}
-              >
-                {table.label || t("tables.defaultTableLabel")}
-              </p>
-              {isMergedTable(table) && (
-                <span className="wos-table-merged-badge">{t("tables.mergedBadge")}</span>
-              )}
+          <div className="wos-table-card-header">
+            <div className="wos-table-card-copy min-w-0 flex-1">
+              <div className="wos-table-card-meta">
+                <p
+                  className={`wos-table-card-label ${
+                    isSweetheart ? "text-white/60" : ""
+                  }`}
+                >
+                  {table.label || t("tables.defaultTableLabel")}
+                </p>
+                {isMergedTable(table) && (
+                  <span className="wos-table-merged-badge">
+                    {t("tables.mergedBadge")}
+                  </span>
+                )}
+              </div>
 
               <h2
-                className={`text-xl sm:text-2xl font-serif font-semibold mt-1 wos-table-card-title ${
+                className={`wos-table-card-title ${
                   isSweetheart ? "text-white" : ""
                 }`}
               >
@@ -379,9 +392,9 @@ function TablesPage() {
               </h2>
             </div>
 
-            <div className="flex items-center gap-2 shrink-0">
+            <div className="wos-table-card-tools">
               <span
-                className={`rounded-full px-3 py-1 text-xs font-semibold wos-table-capacity-badge ${
+                className={`wos-table-capacity-badge rounded-full px-3 py-1 text-xs font-semibold ${
                   isFull
                     ? "wos-table-capacity-full"
                     : isSweetheart
@@ -392,17 +405,13 @@ function TablesPage() {
                 {table.guests.length}/{effectiveCapacity}
               </span>
 
-              <div className="flex items-center gap-1">
+              <div className="wos-table-card-icon-actions">
                 {isMergedTable(table) && !isSweetheart && (
                   <button
                     type="button"
                     onClick={() => handleSplitTable(table)}
                     disabled={isSplittingTables}
-                    className={`rounded-full border border-[#660033]/15 bg-white/90 px-3 py-1.5 text-[0.68rem] font-semibold uppercase tracking-wide text-[#660033] transition hover:bg-[#fff0f3] disabled:opacity-50 ${
-                      prefersTapLayout
-                        ? "opacity-100"
-                        : "opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto"
-                    }`}
+                    className="wos-table-split-btn wos-table-split-btn-desktop"
                   >
                     {isSplittingTables
                       ? t("tables.splittingTables")
@@ -479,6 +488,21 @@ function TablesPage() {
             </div>
           </div>
 
+          {isMergedTable(table) && !isSweetheart && (
+            <div className="wos-table-card-split-row">
+              <button
+                type="button"
+                onClick={() => handleSplitTable(table)}
+                disabled={isSplittingTables}
+                className="wos-table-split-btn wos-table-split-btn-mobile"
+              >
+                {isSplittingTables
+                  ? t("tables.splittingTables")
+                  : t("tables.splitTables")}
+              </button>
+            </div>
+          )}
+
           <BanquetTableSeating
             table={table}
             guests={table.guests}
@@ -490,7 +514,7 @@ function TablesPage() {
             statusConfig={statusConfig}
             emptyLabel={t("tables.emptySeat")}
             onDragStart={handleDragStart}
-            onGuestClick={openSeatModal}
+            onGuestClick={handleGuestSeatTap}
             onSeatDrop={handleDropOnSeat}
             onEmptySeatClick={handleEmptySeatClick}
           />
@@ -500,7 +524,7 @@ function TablesPage() {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 wos-tables-page">
       {message && (
         <div className="rounded-2xl bg-[#fff0f3] text-[#660033] border border-[#eadde2] px-5 py-4 text-sm font-semibold">
           {message}
@@ -641,7 +665,7 @@ function TablesPage() {
             </h2>
           </div>
 
-          <div className="mt-6 max-h-[620px] overflow-y-auto pr-2 space-y-2">
+          <div className="mt-6 wos-unseated-list space-y-2">
             {unseatedGuests.length === 0 ? (
               <div className="rounded-3xl border border-[#eadde2] bg-[#fff8fa] p-5 text-center">
                 <p className="text-sm font-semibold wos-text-heading">
