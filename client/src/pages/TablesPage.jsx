@@ -5,7 +5,7 @@ import DeleteTableModal from "../components/tables/DeleteTableModal.jsx";
 import EditTableModal from "../components/tables/EditTableModal.jsx";
 import MergeTablesModal from "../components/tables/MergeTablesModal.jsx";
 import BanquetTableSeating from "../components/tables/BanquetTableSeating.jsx";
-import { getTableCapacity } from "../components/tables/tableSeatingUtils.js";
+import { getTableCapacity, isMergedTable } from "../components/tables/tableSeatingUtils.js";
 import { usePrefersTapLayout } from "../hooks/usePrefersTapLayout.js";
 import {
   fetchTables,
@@ -88,7 +88,7 @@ function TablesPage() {
     .filter((table) => table.name !== SWEETHEART_TABLE_NAME)
     .sort((a, b) => a.order - b.order);
 
-  const mergeableTables = regularTables.filter((table) => !table.mergeMeta);
+  const mergeableTables = regularTables.filter((table) => !isMergedTable(table));
 
   const sweetheartTable = tables.find(
     (table) => table.name === SWEETHEART_TABLE_NAME,
@@ -180,12 +180,12 @@ function TablesPage() {
     }
   };
 
-  const handleSplitTable = async () => {
-    if (!tableToEdit?.mergeMeta) return;
+  const handleSplitTable = async (table = tableToEdit) => {
+    if (!table || !isMergedTable(table)) return;
 
     try {
       setIsSplittingTables(true);
-      const tablesData = await unmergeTable(tableToEdit.id);
+      const tablesData = await unmergeTable(table.id);
       setTables(tablesData);
       const guestsData = await fetchUnseatedGuests();
       setUnseatedGuests(guestsData);
@@ -365,8 +365,10 @@ function TablesPage() {
                 }`}
               >
                 {table.label || t("tables.defaultTableLabel")}
-                {table.mergeMeta ? ` · ${t("tables.mergedBadge")}` : ""}
               </p>
+              {isMergedTable(table) && (
+                <span className="wos-table-merged-badge">{t("tables.mergedBadge")}</span>
+              )}
 
               <h2
                 className={`text-xl sm:text-2xl font-serif font-semibold mt-1 wos-table-card-title ${
@@ -391,6 +393,23 @@ function TablesPage() {
               </span>
 
               <div className="flex items-center gap-1">
+                {isMergedTable(table) && !isSweetheart && (
+                  <button
+                    type="button"
+                    onClick={() => handleSplitTable(table)}
+                    disabled={isSplittingTables}
+                    className={`rounded-full border border-[#660033]/15 bg-white/90 px-3 py-1.5 text-[0.68rem] font-semibold uppercase tracking-wide text-[#660033] transition hover:bg-[#fff0f3] disabled:opacity-50 ${
+                      prefersTapLayout
+                        ? "opacity-100"
+                        : "opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto"
+                    }`}
+                  >
+                    {isSplittingTables
+                      ? t("tables.splittingTables")
+                      : t("tables.splitTables")}
+                  </button>
+                )}
+
                 <button
                   type="button"
                   onClick={() => setTableToEdit(table)}

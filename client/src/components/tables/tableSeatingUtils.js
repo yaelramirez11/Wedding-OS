@@ -110,6 +110,14 @@ export function isLargeBanquetLayout(capacity, isSweetheart = false) {
   return !isSweetheart && capacity > 10;
 }
 
+export function isMergedTable(table) {
+  if (!table || table.name === SWEETHEART_TABLE_NAME) {
+    return false;
+  }
+
+  return Boolean(table.mergeMeta) || getTableCapacity(table) > DEFAULT_TABLE_CAPACITY;
+}
+
 export function getSeatPositionKey(seatIndex, capacity, isSweetheart = false) {
   const layout = buildSeatLayout(capacity, isSweetheart);
   return layout.find((seat) => seat.index === seatIndex)?.key || `seat-${seatIndex}`;

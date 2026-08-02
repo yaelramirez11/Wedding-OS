@@ -5,6 +5,10 @@ const { updateOwned } = require("../lib/ownership");
 const TABLE_CAPACITY = 10;
 const SWEETHEART_TABLE_CAPACITY = 2;
 const SWEETHEART_TABLE_NAME = "Sweetheart Table";
+const DEFAULT_MERGED_TABLE_NAMES = new Set([
+  "Merged table",
+  "Mesa unida",
+]);
 
 const getCapacityForTable = (table) => {
   if (table.name === SWEETHEART_TABLE_NAME) {
@@ -12,6 +16,121 @@ const getCapacityForTable = (table) => {
   }
 
   return table.capacity || TABLE_CAPACITY;
+};
+
+const isMergedCapacity = (table) =>
+  table.name !== SWEETHEART_TABLE_NAME && getCapacityForTable(table) > TABLE_CAPACITY;
+
+const isMergedTable = (table) => Boolean(table.mergeMeta) || isMergedCapacity(table);
+
+const getNextTableNumbers = (tables, count = 2) => {
+  const usedNumbers = new Set(
+    tables
+      .map((item) => /^Table (\d+)$/.exec(item.name)?.[1])
+      .filter(Boolean)
+      .map(Number),
+  );
+
+  const available = [];
+
+  for (let number = 1; available.length < count && number < 100; number += 1) {
+    if (!usedNumbers.has(number)) {
+      available.push(number);
+    }
+  }
+
+  while (available.length < count) {
+    available.push(available.length + 1);
+  }
+
+  return available;
+};
+
+const inferLegacyMergeMeta = async (userId, table) => {
+  if (!isMergedCapacity(table)) {
+    return null;
+  }
+
+  const allTables = await prisma.weddingTable.findMany({
+    where: { userId },
+    select: {
+      id: true,
+      name: true,
+      order: true,
+    },
+  });
+
+  const primaryCapacity = TABLE_CAPACITY;
+  const secondaryCapacity = getCapacityForTable(table) - primaryCapacity;
+  const [firstNumber, secondNumber] = getNextTableNumbers(
+    allTables.filter((item) => item.id !== table.id),
+    2,
+  );
+
+  let primaryName = table.name;
+  let partnerName = `Table ${secondNumber}`;
+
+  if (DEFAULT_MERGED_TABLE_NAMES.has(table.name) || !/^Table \d+$/.test(table.name)) {
+    primaryName = `Table ${firstNumber}`;
+    partnerName = `Table ${secondNumber}`;
+  }
+
+  return {
+    primaryName,
+    partnerName,
+    partnerLabel: table.label,
+    partnerOrder: table.order + 1,
+    primaryCapacity,
+    secondaryCapacity,
+    addExtraSeat: getCapacityForTable(table) === primaryCapacity + secondaryCapacity + 1,
+    inferred: true,
+  };
+};
+
+const resolveMergeMeta = async (userId, table) => {
+  if (table.mergeMeta) {
+    return table.mergeMeta;
+  }
+
+  return inferLegacyMergeMeta(userId, table);
+};
+
+const splitGuestsForUnmerge = (guests, primaryCapacity, hasStoredMeta) => {
+  const primaryGuests = [];
+  const secondaryGuests = [];
+
+  const usesSeatBoundary = guests.every(
+    (guest) =>
+      guest.seatIndex == null ||
+      guest.seatIndex < primaryCapacity ||
+      guest.seatIndex >= primaryCapacity,
+  );
+
+  if (hasStoredMeta || usesSeatBoundary) {
+    for (const guest of guests) {
+      if (guest.seatIndex != null && guest.seatIndex >= primaryCapacity) {
+        secondaryGuests.push(guest);
+      } else {
+        primaryGuests.push(guest);
+      }
+    }
+
+    return { primaryGuests, secondaryGuests };
+  }
+
+  const sortedGuests = [...guests].sort((a, b) => {
+    const seatA = a.seatIndex == null ? Number.MAX_SAFE_INTEGER : a.seatIndex;
+    const seatB = b.seatIndex == null ? Number.MAX_SAFE_INTEGER : b.seatIndex;
+
+    if (seatA !== seatB) return seatA - seatB;
+
+    return new Date(a.createdAt) - new Date(b.createdAt);
+  });
+
+  return {
+    primaryGuests: sortedGuests.slice(0, primaryCapacity),
+    secondaryGuests: sortedGuests.slice(primaryCapacity),
+  };
 };
 
 const getTables = async (userId) => {
@@ -89,14 +208,14 @@ const updateTable = async (userId, id, data) => {
     payload.capacity = data.capacity;
   }
 
-  if (data.name != null && table.mergeMeta) {
+  if (data.name != null && isMergedTable(table)) {
     throw createError(
       "Rename the table after splitting the merged tables.",
       400,
     );
   }
 
-  if (data.capacity != null && table.mergeMeta) {
+  if (data.capacity != null && isMergedTable(table)) {
     throw createError(
       "Change capacity after splitting the merged tables.",
       400,
@@ -144,6 +263,10 @@ const mergeTables = async (
     secondary.name === SWEETHEART_TABLE_NAME
   ) {
     throw createError("The sweetheart table cannot be merged.", 400);
+  }
+
+  if (isMergedTable(primary) || isMergedTable(secondary)) {
+    throw createError("Split a merged table before merging again.", 400);
   }
 
   const primaryCapacity = getCapacityForTable(primary);
@@ -223,7 +346,9 @@ const unmergeTable = async (userId, tableId) => {
     throw notFoundError();
   }
 
-  if (!table.mergeMeta) {
+  const mergeMeta = await resolveMergeMeta(userId, table);
+
+  if (!mergeMeta) {
     throw createError("This table is not a merged table.", 400);
   }
 
@@ -234,18 +359,13 @@ const unmergeTable = async (userId, tableId) => {
     partnerOrder,
     primaryCapacity,
     secondaryCapacity,
-  } = table.mergeMeta;
+  } = mergeMeta;
 
-  const primaryGuests = [];
-  const secondaryGuests = [];
-
-  for (const guest of table.guests) {
-    if (guest.seatIndex != null && guest.seatIndex >= primaryCapacity) {
-      secondaryGuests.push(guest);
-    } else {
-      primaryGuests.push(guest);
-    }
-  }
+  const { primaryGuests, secondaryGuests } = splitGuestsForUnmerge(
+    table.guests,
+    primaryCapacity,
+    Boolean(table.mergeMeta),
+  );
 
   if (primaryGuests.length > primaryCapacity) {
     throw createError(
@@ -272,24 +392,27 @@ const unmergeTable = async (userId, tableId) => {
   });
 
   const guestUpdates = [
-    ...primaryGuests.map((guest) =>
+    ...primaryGuests.map((guest, index) =>
       prisma.guest.update({
         where: { id: guest.id },
         data: {
           tableId: table.id,
-          seatIndex: guest.seatIndex,
+          seatIndex:
+            guest.seatIndex != null && guest.seatIndex < primaryCapacity
+              ? guest.seatIndex
+              : index,
         },
       }),
     ),
-    ...secondaryGuests.map((guest) =>
+    ...secondaryGuests.map((guest, index) =>
       prisma.guest.update({
         where: { id: guest.id },
         data: {
           tableId: recreatedSecondary.id,
           seatIndex:
-            guest.seatIndex != null
+            guest.seatIndex != null && guest.seatIndex >= primaryCapacity
               ? guest.seatIndex - primaryCapacity
-              : null,
+              : index,
         },
       }),
     ),
@@ -511,4 +634,5 @@ module.exports = {
   assignGuestToTable,
   getUnseatedGuests,
   SWEETHEART_TABLE_NAME,
+  isMergedTable,
 };

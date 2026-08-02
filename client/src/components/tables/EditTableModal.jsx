@@ -9,7 +9,7 @@ import {
   resolveTableLabelValue,
   SWEETHEART_TABLE_NAME,
 } from "../../i18n/helpers.js";
-import { getTableCapacity } from "./tableSeatingUtils.js";
+import { getTableCapacity, isMergedTable } from "./tableSeatingUtils.js";
 
 function EditTableModal({
   open,
@@ -26,7 +26,7 @@ function EditTableModal({
     () => getTableLabelOptions(t, { includeBrideAndGroom: isSweetheart }),
     [t, isSweetheart],
   );
-  const isMerged = Boolean(table?.mergeMeta);
+  const isMerged = isMergedTable(table);
 
   const [tableNumber, setTableNumber] = useState("");
   const [customName, setCustomName] = useState("");
