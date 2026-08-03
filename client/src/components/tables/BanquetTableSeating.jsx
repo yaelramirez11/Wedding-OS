@@ -16,7 +16,7 @@ function BanquetTableSeating({
   statusConfig,
   emptyLabel,
   onDragStart,
-  onGuestClick,
+  onOccupiedSeatClick,
   onSeatDrop,
   onEmptySeatClick,
 }) {
@@ -88,12 +88,15 @@ function BanquetTableSeating({
         declined: "bg-red-500",
       }[guest.status] || "bg-[#8d7380]";
 
+    const canReceiveGuest =
+      prefersTapLayout && selectedGuestId && guest.id !== selectedGuestId;
+
     return (
       <div
         key={guest.id}
         className={`wos-banquet-seat-wrap wos-banquet-seat-${position} ${
           isSelected ? "wos-banquet-seat-selected" : ""
-        }`}
+        } ${canReceiveGuest ? "wos-banquet-seat-swap-target" : ""}`}
         {...dropProps}
       >
         <span
@@ -110,14 +113,16 @@ function BanquetTableSeating({
           role={prefersTapLayout ? "button" : undefined}
           tabIndex={prefersTapLayout ? 0 : undefined}
           onClick={
-            prefersTapLayout && guest ? () => onGuestClick(guest) : undefined
+            prefersTapLayout && guest
+              ? () => onOccupiedSeatClick(table, seatIndex, guest)
+              : undefined
           }
           onKeyDown={
             prefersTapLayout && guest
               ? (event) => {
                   if (event.key === "Enter" || event.key === " ") {
                     event.preventDefault();
-                    onGuestClick(guest);
+                    onOccupiedSeatClick(table, seatIndex, guest);
                   }
                 }
               : undefined

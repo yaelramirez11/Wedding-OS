@@ -240,16 +240,18 @@ function TablesPage() {
     }
   };
 
-  const handleEmptySeatClick = async (table, seatIndex) => {
+  const getGuestById = (guestId) =>
+    unseatedGuests.find((item) => item.id === guestId) ||
+    tables.flatMap((item) => item.guests).find((item) => item.id === guestId);
+
+  const assignSelectedGuestToSeat = async (table, seatIndex) => {
     if (!selectedGuestId) return;
 
-    const guest =
-      unseatedGuests.find((item) => item.id === selectedGuestId) ||
-      tables
-        .flatMap((item) => item.guests)
-        .find((item) => item.id === selectedGuestId);
-
-    if (!guest) return;
+    const guest = getGuestById(selectedGuestId);
+    if (!guest) {
+      setSelectedGuestId(null);
+      return;
+    }
 
     try {
       await assignGuestToTable(guest.id, table.id, seatIndex);
@@ -264,6 +266,29 @@ function TablesPage() {
     } finally {
       setTimeout(() => setMessage(""), 2500);
     }
+  };
+
+  const handleEmptySeatClick = async (table, seatIndex) => {
+    await assignSelectedGuestToSeat(table, seatIndex);
+  };
+
+  const handleOccupiedSeatClick = async (table, seatIndex, guest) => {
+    if (!prefersTapLayout) {
+      openSeatModal(guest);
+      return;
+    }
+
+    if (selectedGuestId === guest.id) {
+      setSelectedGuestId(null);
+      return;
+    }
+
+    if (selectedGuestId) {
+      await assignSelectedGuestToSeat(table, seatIndex);
+      return;
+    }
+
+    setSelectedGuestId(guest.id);
   };
 
   const handleDropOnUnseated = async () => {
@@ -327,23 +352,11 @@ function TablesPage() {
     setSelectedGuestId(guest.id);
   };
 
-  const handleGuestSeatTap = (guest) => {
-    if (prefersTapLayout) {
-      setSelectedGuestId((current) => (current === guest.id ? null : guest.id));
-      return;
-    }
-
-    openSeatModal(guest);
-  };
-
   const selectGuestForSeating = (guest) => {
-    if (prefersTapLayout) {
-      openSeatModal(guest);
-      return;
-    }
-
     setSelectedGuestId((current) => (current === guest.id ? null : guest.id));
   };
+
+  const selectedGuest = selectedGuestId ? getGuestById(selectedGuestId) : null;
 
   const renderTable = (table, isSweetheart = false) => {
     const effectiveCapacity = getTableCapacity(table);
@@ -514,7 +527,7 @@ function TablesPage() {
             statusConfig={statusConfig}
             emptyLabel={t("tables.emptySeat")}
             onDragStart={handleDragStart}
-            onGuestClick={handleGuestSeatTap}
+            onOccupiedSeatClick={handleOccupiedSeatClick}
             onSeatDrop={handleDropOnSeat}
             onEmptySeatClick={handleEmptySeatClick}
           />
@@ -633,7 +646,11 @@ function TablesPage() {
               )}
 
               <p className="text-sm text-[#8d7380]">
-                {prefersTapLayout ? t("tables.tapHint") : t("tables.dragHint")}
+                {prefersTapLayout
+                  ? selectedGuest
+                    ? `${selectedGuest.name} — ${t("tables.tapSeatTargetHint")}`
+                    : t("tables.tapHint")
+                  : t("tables.dragHint")}
               </p>
             </div>
           </div>

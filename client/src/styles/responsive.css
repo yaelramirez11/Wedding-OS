@@ -580,6 +580,23 @@ body,
   box-shadow: 0 0 0 2px rgba(102, 0, 51, 0.12);
 }
 
+.wos-banquet-seat-swap-target .wos-banquet-seat {
+  cursor: pointer;
+  border-color: #660033;
+  color: #660033;
+  background: rgba(255, 240, 243, 0.75);
+}
+
+.wos-banquet-seat-swap-target .wos-banquet-seat:active {
+  transform: scale(0.98);
+}
+
+[data-theme="dark"] .wos-banquet-seat-swap-target .wos-banquet-seat {
+  border-color: var(--wos-primary);
+  color: var(--wos-heading);
+  background: rgba(255, 255, 255, 0.06);
+}
+
 [data-theme="dark"] .wos-banquet-seat-target {
   border-color: var(--wos-primary);
   color: var(--wos-heading);
