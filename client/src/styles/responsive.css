@@ -268,6 +268,30 @@ body,
   touch-action: pan-y;
 }
 
+.wos-tables-page-assigning .wos-table-map {
+  pointer-events: none;
+}
+
+.wos-banquet-seat-tap {
+  cursor: pointer;
+  touch-action: manipulation;
+  width: 100%;
+  text-align: left;
+}
+
+.wos-banquet-seat-tap:disabled {
+  cursor: wait;
+  opacity: 0.72;
+}
+
+.wos-banquet-seat-pending {
+  pointer-events: none;
+}
+
+.wos-banquet-seat-tap:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
 .wos-tables-page .wos-table-map,
 .wos-tables-page .wos-banquet-layout,
 .wos-tables-page .wos-table-card {
@@ -554,14 +578,6 @@ body,
 .wos-banquet-seat-drag:hover {
   transform: translateY(-1px);
   box-shadow: 0 6px 16px rgba(80, 40, 55, 0.1);
-}
-
-.wos-banquet-seat-tap {
-  cursor: pointer;
-}
-
-.wos-banquet-seat-tap:active {
-  transform: scale(0.98);
 }
 
 .wos-banquet-seat-target {

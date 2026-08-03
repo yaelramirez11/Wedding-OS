@@ -1,12 +1,17 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import SeatGuestModal from "../components/tables/SeatGuestModal.jsx";
 import DeleteTableModal from "../components/tables/DeleteTableModal.jsx";
 import EditTableModal from "../components/tables/EditTableModal.jsx";
 import MergeTablesModal from "../components/tables/MergeTablesModal.jsx";
 import BanquetTableSeating from "../components/tables/BanquetTableSeating.jsx";
-import { getTableCapacity, isMergedTable } from "../components/tables/tableSeatingUtils.js";
+import {
+  applyOptimisticSeatAssignment,
+  getTableCapacity,
+  isMergedTable,
+} from "../components/tables/tableSeatingUtils.js";
 import { usePrefersTapLayout } from "../hooks/usePrefersTapLayout.js";
+import { useTapWithoutScroll } from "../hooks/useTapWithoutScroll.js";
 import {
   fetchTables,
   fetchUnseatedGuests,
@@ -48,6 +53,9 @@ function TablesPage() {
   const [isSplittingTables, setIsSplittingTables] = useState(false);
   const [seatModalGuest, setSeatModalGuest] = useState(null);
   const [selectedGuestId, setSelectedGuestId] = useState(null);
+  const [isAssigningSeat, setIsAssigningSeat] = useState(false);
+  const isAssigningSeatRef = useRef(false);
+  const { handlePointerDown, createTapHandler, resetPointer } = useTapWithoutScroll();
 
   useEffect(() => {
     loadTablesData();
@@ -245,7 +253,7 @@ function TablesPage() {
     tables.flatMap((item) => item.guests).find((item) => item.id === guestId);
 
   const assignSelectedGuestToSeat = async (table, seatIndex) => {
-    if (!selectedGuestId) return;
+    if (!selectedGuestId || isAssigningSeatRef.current) return;
 
     const guest = getGuestById(selectedGuestId);
     if (!guest) {
@@ -253,28 +261,49 @@ function TablesPage() {
       return;
     }
 
+    const previousState = {
+      tables,
+      unseatedGuests,
+    };
+    const optimisticState = applyOptimisticSeatAssignment(
+      tables,
+      unseatedGuests,
+      guest.id,
+      table.id,
+      seatIndex,
+    );
+
+    isAssigningSeatRef.current = true;
+    setIsAssigningSeat(true);
+    setSelectedGuestId(null);
+    setTables(optimisticState.tables);
+    setUnseatedGuests(optimisticState.unseatedGuests);
+
     try {
       await assignGuestToTable(guest.id, table.id, seatIndex);
-      await loadTablesData();
-      setSelectedGuestId(null);
-
-      setMessage(
-        `${guest.name} ${t("tables.seatedAt")} ${getTableDisplayName(t, table.name)}`,
-      );
     } catch (error) {
+      setTables(previousState.tables);
+      setUnseatedGuests(previousState.unseatedGuests);
+      setSelectedGuestId(guest.id);
       setMessage(error.message);
+      setTimeout(() => setMessage(""), 3000);
     } finally {
-      setTimeout(() => setMessage(""), 2500);
+      isAssigningSeatRef.current = false;
+      setIsAssigningSeat(false);
     }
   };
 
-  const handleEmptySeatClick = async (table, seatIndex) => {
-    await assignSelectedGuestToSeat(table, seatIndex);
+  const handleEmptySeatClick = (table, seatIndex) => {
+    void assignSelectedGuestToSeat(table, seatIndex);
   };
 
-  const handleOccupiedSeatClick = async (table, seatIndex, guest) => {
+  const handleOccupiedSeatClick = (table, seatIndex, guest) => {
     if (!prefersTapLayout) {
       openSeatModal(guest);
+      return;
+    }
+
+    if (isAssigningSeatRef.current) {
       return;
     }
 
@@ -284,7 +313,7 @@ function TablesPage() {
     }
 
     if (selectedGuestId) {
-      await assignSelectedGuestToSeat(table, seatIndex);
+      void assignSelectedGuestToSeat(table, seatIndex);
       return;
     }
 
@@ -353,6 +382,10 @@ function TablesPage() {
   };
 
   const selectGuestForSeating = (guest) => {
+    if (isAssigningSeatRef.current) {
+      return;
+    }
+
     setSelectedGuestId((current) => (current === guest.id ? null : guest.id));
   };
 
@@ -524,12 +557,14 @@ function TablesPage() {
             variant={isSweetheart ? "dark" : "light"}
             prefersTapLayout={prefersTapLayout}
             selectedGuestId={selectedGuestId}
+            isAssigningSeat={isAssigningSeat}
             statusConfig={statusConfig}
             emptyLabel={t("tables.emptySeat")}
             onDragStart={handleDragStart}
             onOccupiedSeatClick={handleOccupiedSeatClick}
             onSeatDrop={handleDropOnSeat}
             onEmptySeatClick={handleEmptySeatClick}
+            createSeatTapHandler={createTapHandler}
           />
         </div>
       </article>
@@ -537,7 +572,13 @@ function TablesPage() {
   };
 
   return (
-    <div className="space-y-8 wos-tables-page">
+    <div
+      className={`space-y-8 wos-tables-page ${
+        isAssigningSeat ? "wos-tables-page-assigning" : ""
+      }`}
+      onPointerDown={prefersTapLayout ? handlePointerDown : undefined}
+      onPointerCancel={prefersTapLayout ? resetPointer : undefined}
+    >
       {message && (
         <div className="rounded-2xl bg-[#fff0f3] text-[#660033] border border-[#eadde2] px-5 py-4 text-sm font-semibold">
           {message}
@@ -702,7 +743,14 @@ function TablesPage() {
                   }
                   role="button"
                   tabIndex={0}
-                  onClick={() => selectGuestForSeating(guest)}
+                  onPointerUp={
+                    prefersTapLayout
+                      ? createTapHandler(() => selectGuestForSeating(guest))
+                      : undefined
+                  }
+                  onClick={
+                    prefersTapLayout ? undefined : () => selectGuestForSeating(guest)
+                  }
                   onKeyDown={(event) => {
                     if (event.key === "Enter" || event.key === " ") {
                       event.preventDefault();
@@ -715,7 +763,9 @@ function TablesPage() {
                       : "border-[#eadde2]"
                   } ${
                     prefersTapLayout
-                      ? "cursor-pointer active:scale-[0.99] hover:bg-[#fff0f3]"
+                      ? `cursor-pointer active:scale-[0.99] hover:bg-[#fff0f3] ${
+                          isAssigningSeat ? "pointer-events-none opacity-70" : ""
+                        }`
                       : "cursor-grab active:cursor-grabbing hover:bg-[#fff0f3]"
                   }`}
                 >

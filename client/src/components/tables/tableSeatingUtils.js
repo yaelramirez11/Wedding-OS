@@ -122,3 +122,100 @@ export function getSeatPositionKey(seatIndex, capacity, isSweetheart = false) {
   const layout = buildSeatLayout(capacity, isSweetheart);
   return layout.find((seat) => seat.index === seatIndex)?.key || `seat-${seatIndex}`;
 }
+
+function findFirstOpenSeatIndex(occupiedSeatIndexes, capacity) {
+  const occupied = new Set(
+    occupiedSeatIndexes.filter((index) => index != null && index >= 0),
+  );
+
+  for (let index = 0; index < capacity; index += 1) {
+    if (!occupied.has(index)) {
+      return index;
+    }
+  }
+
+  return null;
+}
+
+export function applyOptimisticSeatAssignment(
+  tables,
+  unseatedGuests,
+  guestId,
+  targetTableId,
+  targetSeatIndex,
+) {
+  const targetTable = tables.find((table) => table.id === targetTableId);
+  if (!targetTable) {
+    return { tables, unseatedGuests };
+  }
+
+  const allGuests = [
+    ...unseatedGuests.map((guest) => ({ ...guest, tableId: null })),
+    ...tables.flatMap((table) =>
+      table.guests.map((guest) => ({ ...guest, tableId: table.id })),
+    ),
+  ];
+
+  const movingGuest = allGuests.find((guest) => guest.id === guestId);
+  if (!movingGuest) {
+    return { tables, unseatedGuests };
+  }
+
+  const capacity = getTableCapacity(targetTable);
+  const targetGuests = allGuests.filter(
+    (guest) => guest.tableId === targetTableId && guest.id !== guestId,
+  );
+  const occupant = targetGuests.find((guest) => guest.seatIndex === targetSeatIndex);
+  const updatedById = new Map(allGuests.map((guest) => [guest.id, { ...guest }]));
+
+  updatedById.set(guestId, {
+    ...movingGuest,
+    tableId: targetTableId,
+    seatIndex: targetSeatIndex,
+  });
+
+  if (occupant) {
+    const previousSeatIndex = movingGuest.seatIndex;
+    const sameTable = movingGuest.tableId === targetTableId;
+
+    if (
+      sameTable &&
+      previousSeatIndex != null &&
+      previousSeatIndex >= 0 &&
+      previousSeatIndex < capacity &&
+      previousSeatIndex !== targetSeatIndex
+    ) {
+      updatedById.set(occupant.id, {
+        ...occupant,
+        tableId: targetTableId,
+        seatIndex: previousSeatIndex,
+      });
+    } else {
+      const fallbackSeat = findFirstOpenSeatIndex(
+        targetGuests
+          .filter((guest) => guest.id !== occupant.id)
+          .map((guest) => guest.seatIndex)
+          .concat(targetSeatIndex),
+        capacity,
+      );
+
+      updatedById.set(occupant.id, {
+        ...occupant,
+        tableId: targetTableId,
+        seatIndex: fallbackSeat,
+      });
+    }
+  }
+
+  const nextGuests = [...updatedById.values()];
+  const nextUnseated = nextGuests.filter((guest) => !guest.tableId);
+  const nextTables = tables.map((table) => ({
+    ...table,
+    guests: nextGuests.filter((guest) => guest.tableId === table.id),
+  }));
+
+  return {
+    tables: nextTables,
+    unseatedGuests: nextUnseated,
+  };
+}

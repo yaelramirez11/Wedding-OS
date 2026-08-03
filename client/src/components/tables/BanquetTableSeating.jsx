@@ -13,12 +13,14 @@ function BanquetTableSeating({
   variant = "light",
   prefersTapLayout,
   selectedGuestId,
+  isAssigningSeat = false,
   statusConfig,
   emptyLabel,
   onDragStart,
   onOccupiedSeatClick,
   onSeatDrop,
   onEmptySeatClick,
+  createSeatTapHandler,
 }) {
   const slots = buildSeatSlots(guests, capacity);
   const isDark = variant === "dark";
@@ -26,6 +28,7 @@ function BanquetTableSeating({
     ? SWEETHEART_SEAT_LAYOUT
     : buildSeatLayout(capacity, isSweetheart);
   const isLargeLayout = isLargeBanquetLayout(capacity, isSweetheart);
+  const tapDisabled = prefersTapLayout && isAssigningSeat;
 
   const renderSeat = (seatIndex, position) => {
     const guest = slots[seatIndex];
@@ -58,15 +61,20 @@ function BanquetTableSeating({
       : null;
 
     if (!guest) {
-      const canAssign = prefersTapLayout && selectedGuestId;
+      const canAssign = prefersTapLayout && selectedGuestId && !tapDisabled;
 
       return (
         <button
           key={`empty-${seatIndex}`}
           type="button"
           disabled={!canAssign}
+          onPointerUp={
+            canAssign && createSeatTapHandler
+              ? createSeatTapHandler(() => onEmptySeatClick(table, seatIndex))
+              : undefined
+          }
           onClick={
-            canAssign
+            canAssign && !createSeatTapHandler
               ? () => onEmptySeatClick(table, seatIndex)
               : undefined
           }
@@ -89,14 +97,24 @@ function BanquetTableSeating({
       }[guest.status] || "bg-[#8d7380]";
 
     const canReceiveGuest =
-      prefersTapLayout && selectedGuestId && guest.id !== selectedGuestId;
+      prefersTapLayout &&
+      selectedGuestId &&
+      guest.id !== selectedGuestId &&
+      !tapDisabled;
+
+    const occupiedTapHandler =
+      prefersTapLayout && createSeatTapHandler
+        ? createSeatTapHandler(() => onOccupiedSeatClick(table, seatIndex, guest))
+        : undefined;
 
     return (
       <div
         key={guest.id}
         className={`wos-banquet-seat-wrap wos-banquet-seat-${position} ${
           isSelected ? "wos-banquet-seat-selected" : ""
-        } ${canReceiveGuest ? "wos-banquet-seat-swap-target" : ""}`}
+        } ${canReceiveGuest ? "wos-banquet-seat-swap-target" : ""} ${
+          tapDisabled ? "wos-banquet-seat-pending" : ""
+        }`}
         {...dropProps}
       >
         <span
@@ -108,31 +126,27 @@ function BanquetTableSeating({
           aria-label={statusLabel}
         />
 
-        <div
-          {...dragProps}
-          role={prefersTapLayout ? "button" : undefined}
-          tabIndex={prefersTapLayout ? 0 : undefined}
-          onClick={
-            prefersTapLayout && guest
-              ? () => onOccupiedSeatClick(table, seatIndex, guest)
-              : undefined
-          }
-          onKeyDown={
-            prefersTapLayout && guest
-              ? (event) => {
-                  if (event.key === "Enter" || event.key === " ") {
-                    event.preventDefault();
-                    onOccupiedSeatClick(table, seatIndex, guest);
-                  }
-                }
-              : undefined
-          }
-          className={`wos-banquet-seat ${
-            isDark ? "wos-banquet-seat-dark" : "wos-banquet-seat-light"
-          } ${prefersTapLayout ? "wos-banquet-seat-tap" : "wos-banquet-seat-drag"}`}
-        >
-          <span className="wos-banquet-seat-name">{guest.name}</span>
-        </div>
+        {prefersTapLayout ? (
+          <button
+            type="button"
+            disabled={tapDisabled}
+            onPointerUp={occupiedTapHandler}
+            className={`wos-banquet-seat wos-banquet-seat-tap ${
+              isDark ? "wos-banquet-seat-dark" : "wos-banquet-seat-light"
+            }`}
+          >
+            <span className="wos-banquet-seat-name">{guest.name}</span>
+          </button>
+        ) : (
+          <div
+            {...dragProps}
+            className={`wos-banquet-seat wos-banquet-seat-drag ${
+              isDark ? "wos-banquet-seat-dark" : "wos-banquet-seat-light"
+            }`}
+          >
+            <span className="wos-banquet-seat-name">{guest.name}</span>
+          </div>
+        )}
       </div>
     );
   };
