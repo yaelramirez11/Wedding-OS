@@ -35,6 +35,7 @@ app.use(express.json({ limit: "10kb" }));
 app.get("/", (req, res) => {
   res.json({
     message: "WeddingOS API running",
+    commit: process.env.RENDER_GIT_COMMIT || null,
   });
 });
 
