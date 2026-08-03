@@ -467,6 +467,11 @@ export const translations = {
       mergeTablesSuccess: "Tables merged successfully.",
       mergeTablesError: "Could not merge tables.",
       mergedBadge: "Merged",
+      dualHeadLayoutLabel: "Dual head seats",
+      dualHeadLayoutHint: "Place 2 seats at each end instead of 1.",
+      dualHeadLayoutOn: "On",
+      dualHeadLayoutOff: "Off",
+      dualHeadLayoutError: "Could not update seat layout.",
       mergedTableNotice: "This is a merged table",
       mergedTableNoticeHint:
         "Split it to restore the original two tables with their previous names and capacities.",
@@ -1100,6 +1105,11 @@ export const translations = {
       mergeTablesSuccess: "Mesas unidas con éxito.",
       mergeTablesError: "No se pudieron unir las mesas.",
       mergedBadge: "Unida",
+      dualHeadLayoutLabel: "Asientos dobles en cabecera",
+      dualHeadLayoutHint: "Coloca 2 asientos en cada extremo en lugar de 1.",
+      dualHeadLayoutOn: "Activado",
+      dualHeadLayoutOff: "Desactivado",
+      dualHeadLayoutError: "No se pudo actualizar la disposición de asientos.",
       mergedTableNotice: "Esta es una mesa unida",
       mergedTableNoticeHint:
         "Divídela para restaurar las dos mesas originales con sus nombres y capacidades anteriores.",

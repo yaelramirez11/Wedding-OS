@@ -4,9 +4,11 @@ import SeatGuestModal from "../components/tables/SeatGuestModal.jsx";
 import DeleteTableModal from "../components/tables/DeleteTableModal.jsx";
 import EditTableModal from "../components/tables/EditTableModal.jsx";
 import MergeTablesModal from "../components/tables/MergeTablesModal.jsx";
+import MergedTableLayoutSwitch from "../components/tables/MergedTableLayoutSwitch.jsx";
 import BanquetTableSeating from "../components/tables/BanquetTableSeating.jsx";
 import {
   applyOptimisticSeatAssignment,
+  getDualHeadLayout,
   getTableCapacity,
   isMergedTable,
 } from "../components/tables/tableSeatingUtils.js";
@@ -51,6 +53,7 @@ function TablesPage() {
   const [isSavingTable, setIsSavingTable] = useState(false);
   const [isMergingTables, setIsMergingTables] = useState(false);
   const [isSplittingTables, setIsSplittingTables] = useState(false);
+  const [togglingLayoutTableId, setTogglingLayoutTableId] = useState(null);
   const [seatModalGuest, setSeatModalGuest] = useState(null);
   const [selectedGuestId, setSelectedGuestId] = useState(null);
   const [isAssigningSeat, setIsAssigningSeat] = useState(false);
@@ -205,6 +208,56 @@ function TablesPage() {
     } finally {
       setIsSplittingTables(false);
       setTimeout(() => setMessage(""), 2500);
+    }
+  };
+
+  const handleToggleDualHeadLayout = async (table, enabled) => {
+    if (!isMergedTable(table) || togglingLayoutTableId != null) {
+      return;
+    }
+
+    const previousMergeMeta = table.mergeMeta;
+
+    setTogglingLayoutTableId(table.id);
+    setTables((current) =>
+      current.map((item) =>
+        item.id === table.id
+          ? {
+              ...item,
+              mergeMeta: {
+                ...(item.mergeMeta || {}),
+                dualHeadLayout: enabled,
+              },
+            }
+          : item,
+      ),
+    );
+
+    try {
+      const updatedTable = await updateTable(table.id, {
+        dualHeadLayout: enabled,
+      });
+
+      setTables((current) =>
+        current.map((item) =>
+          item.id === table.id
+            ? { ...item, mergeMeta: updatedTable.mergeMeta }
+            : item,
+        ),
+      );
+    } catch (error) {
+      console.error(error);
+      setTables((current) =>
+        current.map((item) =>
+          item.id === table.id
+            ? { ...item, mergeMeta: previousMergeMeta }
+            : item,
+        ),
+      );
+      setMessage(error.message || t("tables.dualHeadLayoutError"));
+      setTimeout(() => setMessage(""), 3000);
+    } finally {
+      setTogglingLayoutTableId(null);
     }
   };
 
@@ -395,6 +448,8 @@ function TablesPage() {
     const effectiveCapacity = getTableCapacity(table);
     const isFull = table.guests.length >= effectiveCapacity;
     const isWideTable = !isSweetheart && effectiveCapacity > 10;
+    const isMerged = isMergedTable(table);
+    const dualHeadLayout = getDualHeadLayout(table);
 
     return (
       <article
@@ -534,7 +589,7 @@ function TablesPage() {
             </div>
           </div>
 
-          {isMergedTable(table) && !isSweetheart && (
+          {isMerged && !isSweetheart && (
             <div className="wos-table-card-split-row">
               <button
                 type="button"
@@ -549,6 +604,14 @@ function TablesPage() {
             </div>
           )}
 
+          {isMerged && !isSweetheart && (
+            <MergedTableLayoutSwitch
+              enabled={dualHeadLayout}
+              disabled={togglingLayoutTableId === table.id}
+              onChange={(enabled) => handleToggleDualHeadLayout(table, enabled)}
+            />
+          )}
+
           <BanquetTableSeating
             table={table}
             guests={table.guests}
@@ -558,6 +621,7 @@ function TablesPage() {
             prefersTapLayout={prefersTapLayout}
             selectedGuestId={selectedGuestId}
             isAssigningSeat={isAssigningSeat}
+            dualHeadLayout={dualHeadLayout}
             statusConfig={statusConfig}
             emptyLabel={t("tables.emptySeat")}
             onDragStart={handleDragStart}

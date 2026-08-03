@@ -20,13 +20,14 @@ function BanquetTableSeating({
   onOccupiedSeatClick,
   onSeatDrop,
   onEmptySeatClick,
+  dualHeadLayout = false,
   createSeatTapHandler,
 }) {
   const slots = buildSeatSlots(guests, capacity);
   const isDark = variant === "dark";
   const layout = isSweetheart
     ? SWEETHEART_SEAT_LAYOUT
-    : buildSeatLayout(capacity, isSweetheart);
+    : buildSeatLayout(capacity, isSweetheart, dualHeadLayout);
   const isLargeLayout = isLargeBanquetLayout(capacity, isSweetheart);
   const tapDisabled = prefersTapLayout && isAssigningSeat;
 
@@ -168,8 +169,8 @@ function BanquetTableSeating({
     );
   }
 
-  const headSeat = layout.find((seat) => seat.key === "head");
-  const footSeat = layout.find((seat) => seat.key === "foot");
+  const headSeats = layout.filter((seat) => seat.key.startsWith("head"));
+  const footSeats = layout.filter((seat) => seat.key.startsWith("foot"));
   const leftSeats = layout.filter((seat) => seat.key.startsWith("left-"));
   const rightSeats = layout.filter((seat) => seat.key.startsWith("right-"));
 
@@ -177,11 +178,15 @@ function BanquetTableSeating({
     <div
       className={`wos-banquet-layout ${
         isLargeLayout ? "wos-banquet-layout-large" : ""
-      }`}
+      } ${dualHeadLayout ? "wos-banquet-layout-dual-head" : ""}`}
     >
-      {headSeat && (
-        <div className="wos-banquet-head">
-          {renderSeat(headSeat.index, headSeat.key)}
+      {headSeats.length > 0 && (
+        <div
+          className={`wos-banquet-head ${
+            headSeats.length > 1 ? "wos-banquet-head-dual" : ""
+          }`}
+        >
+          {headSeats.map((seat) => renderSeat(seat.index, seat.key))}
         </div>
       )}
 
@@ -202,9 +207,13 @@ function BanquetTableSeating({
         </div>
       </div>
 
-      {footSeat && (
-        <div className="wos-banquet-foot">
-          {renderSeat(footSeat.index, footSeat.key)}
+      {footSeats.length > 0 && (
+        <div
+          className={`wos-banquet-foot ${
+            footSeats.length > 1 ? "wos-banquet-foot-dual" : ""
+          }`}
+        >
+          {footSeats.map((seat) => renderSeat(seat.index, seat.key))}
         </div>
       )}
     </div>

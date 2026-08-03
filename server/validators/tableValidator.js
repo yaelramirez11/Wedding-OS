@@ -18,6 +18,8 @@ const updateTableSchema = z.object({
   order: z.number().int().optional(),
 
   capacity: z.number().int().min(1).max(30).optional(),
+
+  dualHeadLayout: z.boolean().optional(),
 });
 
 const mergeTablesSchema = z.object({

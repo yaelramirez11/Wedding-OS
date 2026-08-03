@@ -222,6 +222,22 @@ const updateTable = async (userId, id, data) => {
     );
   }
 
+  if (data.dualHeadLayout !== undefined) {
+    if (!isMergedTable(table)) {
+      throw createError(
+        "Dual head layout is only available for merged tables.",
+        400,
+      );
+    }
+
+    const mergeMeta = (await resolveMergeMeta(userId, table)) || {};
+
+    payload.mergeMeta = {
+      ...mergeMeta,
+      dualHeadLayout: Boolean(data.dualHeadLayout),
+    };
+  }
+
   return updateOwned(prisma.weddingTable, userId, id, payload);
 };
 

@@ -77,13 +77,42 @@ export function getTableCapacity(table) {
   return table.capacity || DEFAULT_TABLE_CAPACITY;
 }
 
-export function buildSeatLayout(capacity, isSweetheart = false) {
+export function buildSeatLayout(
+  capacity,
+  isSweetheart = false,
+  dualHeadLayout = false,
+) {
   if (isSweetheart) {
     return SWEETHEART_SEAT_LAYOUT;
   }
 
-  if (capacity === 10) {
+  if (capacity === 10 && !dualHeadLayout) {
     return REGULAR_SEAT_LAYOUT;
+  }
+
+  if (dualHeadLayout && capacity > 10) {
+    const layout = [
+      { index: 0, key: "head-0" },
+      { index: 1, key: "head-1" },
+    ];
+    const sideTotal = Math.max(capacity - 4, 0);
+    const leftCount = Math.floor(sideTotal / 2);
+    const rightCount = sideTotal - leftCount;
+
+    for (let index = 0; index < leftCount; index += 1) {
+      layout.push({ index: 2 + index, key: `left-${index}` });
+    }
+
+    for (let index = 0; index < rightCount; index += 1) {
+      layout.push({ index: 2 + leftCount + index, key: `right-${index}` });
+    }
+
+    if (capacity > 3) {
+      layout.push({ index: capacity - 2, key: "foot-0" });
+      layout.push({ index: capacity - 1, key: "foot-1" });
+    }
+
+    return layout;
   }
 
   const layout = [{ index: 0, key: "head" }];
@@ -118,8 +147,21 @@ export function isMergedTable(table) {
   return Boolean(table.mergeMeta) || getTableCapacity(table) > DEFAULT_TABLE_CAPACITY;
 }
 
-export function getSeatPositionKey(seatIndex, capacity, isSweetheart = false) {
-  const layout = buildSeatLayout(capacity, isSweetheart);
+export function getDualHeadLayout(table) {
+  if (!isMergedTable(table)) {
+    return false;
+  }
+
+  return Boolean(table.mergeMeta?.dualHeadLayout);
+}
+
+export function getSeatPositionKey(
+  seatIndex,
+  capacity,
+  isSweetheart = false,
+  dualHeadLayout = false,
+) {
+  const layout = buildSeatLayout(capacity, isSweetheart, dualHeadLayout);
   return layout.find((seat) => seat.index === seatIndex)?.key || `seat-${seatIndex}`;
 }
 
