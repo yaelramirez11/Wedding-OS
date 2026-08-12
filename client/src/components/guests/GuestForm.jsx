@@ -5,6 +5,8 @@ function GuestForm({
   setName,
   side,
   setSide,
+  gender,
+  setGender,
   plusOneAllowed,
   setPlusOneAllowed,
   notes,
@@ -21,6 +23,11 @@ function GuestForm({
     { value: "bride", labelKey: "side.bride", className: "bg-rose-100 text-black-700" },
     { value: "groom", labelKey: "side.groom", className: "bg-blue-50 text-black-700" },
     { value: "both", labelKey: "side.both", className: "bg-amber-50 text-black-700" },
+  ];
+
+  const genderOptions = [
+    { value: "female", labelKey: "gender.woman", className: "bg-pink-50 text-pink-800" },
+    { value: "male", labelKey: "gender.man", className: "bg-sky-50 text-sky-800" },
   ];
 
   return (
@@ -71,6 +78,37 @@ function GuestForm({
                     side === item.value
                       ? "bg-[#660033] text-white"
                       : item.className
+                  }`}
+                >
+                  {t(item.labelKey)}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <p className="text-xs font-semibold wos-text-muted mb-2">
+              {t("guests.guestGender")}
+            </p>
+
+            <div className="wos-gender-filter wos-gender-filter-form">
+              <button
+                type="button"
+                onClick={() => setGender("")}
+                className={`wos-gender-filter-btn ${
+                  gender === "" ? "is-active" : ""
+                }`}
+              >
+                {t("gender.unset")}
+              </button>
+
+              {genderOptions.map((item) => (
+                <button
+                  key={item.value}
+                  type="button"
+                  onClick={() => setGender(item.value)}
+                  className={`wos-gender-filter-btn ${
+                    gender === item.value ? "is-active" : ""
                   }`}
                 >
                   {t(item.labelKey)}

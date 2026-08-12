@@ -10,6 +10,8 @@ const createGuestSchema = z.object({
 
   side: z.enum(["bride", "groom", "both"]).optional(),
 
+  gender: z.enum(["male", "female"]).optional().nullable(),
+
   plusOneAllowed: z.boolean().optional(),
 
   notes: z.string().max(150, "Notes are too long, honey").optional().nullable(),
@@ -25,6 +27,8 @@ const updateGuestSchema = z.object({
   status: z.enum(["pending", "confirmed", "maybe", "declined"]).optional(),
 
   side: z.enum(["bride", "groom", "both"]).optional(),
+
+  gender: z.enum(["male", "female"]).optional().nullable(),
 
   plusOneAllowed: z.boolean().optional(),
 

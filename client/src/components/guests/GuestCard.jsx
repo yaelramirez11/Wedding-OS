@@ -1,7 +1,7 @@
 import { useState } from "react";
 
 import { useTranslation } from "../../context/PreferencesContext.jsx";
-import { getGuestSideConfig, getGuestStatusConfig } from "../../i18n/helpers.js";
+import { getGuestGenderConfig, getGuestSideConfig, getGuestStatusConfig } from "../../i18n/helpers.js";
 
 function GuestCard({
   guest,
@@ -12,10 +12,12 @@ function GuestCard({
   const { t } = useTranslation();
   const statusConfig = getGuestStatusConfig(t);
   const sideConfig = getGuestSideConfig(t);
+  const genderConfig = getGuestGenderConfig(t);
 
   const [isEditing, setIsEditing] = useState(false);
   const [editedName, setEditedName] = useState(guest.name);
   const [editedSide, setEditedSide] = useState(guest.side || "both");
+  const [editedGender, setEditedGender] = useState(guest.gender || "");
   const [editedPlusOneAllowed, setEditedPlusOneAllowed] = useState(
     Boolean(guest.plusOneAllowed),
   );
@@ -30,6 +32,7 @@ function GuestCard({
     await onUpdateGuestName(guest, {
       name: editedName.trim(),
       side: editedSide,
+      gender: editedGender || null,
       plusOneAllowed: editedPlusOneAllowed,
       notes: editedNotes.trim() || null,
     });
@@ -40,6 +43,7 @@ function GuestCard({
   const handleCancel = () => {
     setEditedName(guest.name);
     setEditedSide(guest.side || "both");
+    setEditedGender(guest.gender || "");
     setEditedPlusOneAllowed(Boolean(guest.plusOneAllowed));
     setEditedNotes(guest.notes || "");
     setIsEditing(false);
@@ -76,6 +80,16 @@ function GuestCard({
                   <option value="both">{sideConfig.both.label}</option>
                   <option value="bride">{sideConfig.bride.label}</option>
                   <option value="groom">{sideConfig.groom.label}</option>
+                </select>
+
+                <select
+                  value={editedGender}
+                  onChange={(e) => setEditedGender(e.target.value)}
+                  className="wos-input text-sm"
+                >
+                  <option value="">{t("gender.unset")}</option>
+                  <option value="female">{genderConfig.female.label}</option>
+                  <option value="male">{genderConfig.male.label}</option>
                 </select>
 
                 <label className="flex items-center justify-between gap-4 rounded-2xl border border-[#eadde2] px-4 py-3 cursor-pointer hover:bg-[#fff8fa] transition">
@@ -119,6 +133,16 @@ function GuestCard({
                   >
                     {sideConfig[guest.side]?.label || sideConfig.both.label}
                   </span>
+
+                  {guest.gender && (
+                    <span
+                      className={`text-xs font-medium px-3 py-1 rounded-full ${
+                        genderConfig[guest.gender]?.className
+                      }`}
+                    >
+                      {genderConfig[guest.gender]?.label}
+                    </span>
+                  )}
 
                   {guest.plusOneAllowed && (
                     <span className="text-xs font-medium bg-purple-100 text-purple-700 px-3 py-1 rounded-full">

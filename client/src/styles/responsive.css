@@ -972,6 +972,94 @@ body,
   overflow-x: clip;
 }
 
+.wos-guest-filter-label {
+  margin: 0 0 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #8d7380;
+}
+
+.wos-gender-filter {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.35rem;
+  width: 100%;
+}
+
+.wos-gender-filter-form {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.wos-gender-filter-btn {
+  min-height: 2.75rem;
+  border-radius: 1rem;
+  border: 1px solid #eadde2;
+  background: #fff8fa;
+  padding: 0.55rem 0.75rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #5c4a52;
+  transition:
+    background-color 0.18s ease,
+    border-color 0.18s ease,
+    color 0.18s ease,
+    transform 0.18s ease;
+}
+
+.wos-gender-filter-btn:hover {
+  border-color: rgba(102, 0, 51, 0.18);
+  background: #fff0f3;
+}
+
+.wos-gender-filter-btn.is-active {
+  border-color: #660033;
+  background: #660033;
+  color: #fff;
+  box-shadow: 0 8px 20px rgba(102, 0, 51, 0.16);
+}
+
+.wos-gender-filter-btn:active {
+  transform: scale(0.98);
+}
+
+@media (min-width: 640px) {
+  .wos-gender-filter {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    width: auto;
+  }
+
+  .wos-gender-filter-form {
+    display: grid;
+    width: 100%;
+  }
+
+  .wos-gender-filter-btn {
+    min-width: 5.5rem;
+  }
+}
+
+[data-theme="dark"] .wos-guest-filter-label {
+  color: var(--wos-muted);
+}
+
+[data-theme="dark"] .wos-gender-filter-btn {
+  border-color: var(--wos-border);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--wos-heading);
+}
+
+[data-theme="dark"] .wos-gender-filter-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="dark"] .wos-gender-filter-btn.is-active {
+  border-color: var(--wos-primary);
+  background: var(--wos-primary);
+  color: #fff;
+}
+
 .wos-stat-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

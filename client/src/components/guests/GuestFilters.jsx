@@ -2,6 +2,12 @@ import { useTranslation } from "../../context/PreferencesContext.jsx";
 
 const statusOptions = ["all", "pending", "confirmed", "maybe", "declined"];
 
+const genderFilterOptions = [
+  { value: "all", labelKey: "gender.all" },
+  { value: "male", labelKey: "gender.men" },
+  { value: "female", labelKey: "gender.women" },
+];
+
 function GuestFilters({
   search,
   setSearch,
@@ -9,6 +15,8 @@ function GuestFilters({
   setStatus,
   sideFilter,
   setSideFilter,
+  genderFilter,
+  setGenderFilter,
   sortBy,
   setSortBy,
 }) {
@@ -49,9 +57,30 @@ function GuestFilters({
 
       <div className="flex flex-col gap-3">
         <div>
-          <p className="text-xs font-medium text-gray-400 mb-2">
-            {t("guests.rsvpStatus")}
-          </p>
+          <p className="wos-guest-filter-label">{t("gender.label")}</p>
+
+          <div
+            className="wos-gender-filter"
+            role="group"
+            aria-label={t("gender.label")}
+          >
+            {genderFilterOptions.map((item) => (
+              <button
+                key={item.value}
+                type="button"
+                onClick={() => setGenderFilter(item.value)}
+                className={`wos-gender-filter-btn ${
+                  genderFilter === item.value ? "is-active" : ""
+                }`}
+              >
+                {t(item.labelKey)}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <p className="wos-guest-filter-label">{t("guests.rsvpStatus")}</p>
 
           <div className="flex flex-wrap gap-2">
             {statusOptions.map((item) => (
@@ -72,9 +101,7 @@ function GuestFilters({
         </div>
 
         <div>
-          <p className="text-xs font-medium text-gray-400 mb-2">
-            {t("guests.weddingSide")}
-          </p>
+          <p className="wos-guest-filter-label">{t("guests.weddingSide")}</p>
 
           <div className="flex flex-wrap gap-2">
             {sideOptions.map((item) => (

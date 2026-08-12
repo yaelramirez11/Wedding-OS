@@ -243,6 +243,17 @@ export const getGuestSideConfig = (t) => ({
   },
 });
 
+export const getGuestGenderConfig = (t) => ({
+  male: {
+    label: t("gender.men"),
+    className: "bg-sky-50 text-sky-800",
+  },
+  female: {
+    label: t("gender.women"),
+    className: "bg-pink-50 text-pink-800",
+  },
+});
+
 export const SWEETHEART_TABLE_NAME = "Sweetheart Table";
 
 export const getTableDisplayName = (t, name) => {

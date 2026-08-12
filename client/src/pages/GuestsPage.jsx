@@ -22,6 +22,7 @@ function GuestsPage() {
   const [guests, setGuests] = useState([]);
   const [name, setName] = useState("");
   const [side, setSide] = useState("both");
+  const [gender, setGender] = useState("");
   const [plusOneAllowed, setPlusOneAllowed] = useState(false);
   const [notes, setNotes] = useState("");
   const [loading, setLoading] = useState(false);
@@ -30,6 +31,7 @@ function GuestsPage() {
   const [guestToDelete, setGuestToDelete] = useState(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [sideFilter, setSideFilter] = useState("all");
+  const [genderFilter, setGenderFilter] = useState("all");
 
   const totalGuests = guests.length;
   const confirmedGuests = guests.filter(
@@ -95,6 +97,7 @@ function GuestsPage() {
         name,
         status: "pending",
         side,
+        gender: gender || null,
         plusOneAllowed,
         notes: notes.trim() || null,
       });
@@ -102,6 +105,7 @@ function GuestsPage() {
       setGuests((prev) => [newGuest, ...prev]);
       setName("");
       setSide("both");
+      setGender("");
       setPlusOneAllowed(false);
       setNotes("");
       showSuccess(t("guests.addSuccess"));
@@ -155,13 +159,15 @@ function GuestsPage() {
   const filteredGuests = guests
     .filter((guest) => {
       const matchesSide = sideFilter === "all" || guest.side === sideFilter;
+      const matchesGender =
+        genderFilter === "all" || guest.gender === genderFilter;
       const matchesSearch = guest.name
         .toLowerCase()
         .includes(search.toLowerCase());
 
       const matchesStatus = status === "all" || guest.status === status;
 
-      return matchesSearch && matchesStatus && matchesSide;
+      return matchesSearch && matchesStatus && matchesSide && matchesGender;
     })
     .sort((a, b) => {
       if (sortBy === "name") {
@@ -298,6 +304,8 @@ function GuestsPage() {
           setName={setName}
           side={side}
           setSide={setSide}
+          gender={gender}
+          setGender={setGender}
           plusOneAllowed={plusOneAllowed}
           setPlusOneAllowed={setPlusOneAllowed}
           notes={notes}
@@ -314,6 +322,8 @@ function GuestsPage() {
             setStatus={setStatus}
             sideFilter={sideFilter}
             setSideFilter={setSideFilter}
+            genderFilter={genderFilter}
+            setGenderFilter={setGenderFilter}
             sortBy={sortBy}
             setSortBy={setSortBy}
           />

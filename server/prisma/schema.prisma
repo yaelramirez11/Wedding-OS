@@ -47,11 +47,17 @@ enum GuestSide {
   both
 }
 
+enum GuestGender {
+  male
+  female
+}
+
 model Guest {
   id             Int           @id @default(autoincrement())
   name           String
   status         GuestStatus   @default(pending)
   side           GuestSide     @default(both)
+  gender         GuestGender?
   plusOneAllowed Boolean       @default(false)
   notes          String?
   createdAt      DateTime      @default(now())
