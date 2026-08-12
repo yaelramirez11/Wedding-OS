@@ -1025,6 +1025,68 @@ body,
   color: #8d7380;
 }
 
+.wos-gender-filter-summary {
+  margin-top: 0.65rem;
+}
+
+.wos-gender-filter-count {
+  margin: 0;
+  font-size: clamp(1.125rem, 4vw, 1.5rem);
+  font-weight: 700;
+  line-height: 1.2;
+  color: #660033;
+}
+
+.wos-guest-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  min-width: 0;
+}
+
+.wos-guest-stat-card {
+  min-height: 0;
+}
+
+.wos-guest-stat-icon {
+  height: 2.75rem;
+  width: 2.75rem;
+  font-size: 1rem;
+}
+
+.wos-guest-form {
+  isolation: isolate;
+}
+
+@media (min-width: 640px) {
+  .wos-guest-stat-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1.25rem;
+  }
+
+  .wos-guest-stat-icon {
+    height: 3.25rem;
+    width: 3.25rem;
+    font-size: 1.125rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .wos-guest-stat-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+
+  .wos-guest-stat-icon {
+    height: 3.5rem;
+    width: 3.5rem;
+    font-size: 1.25rem;
+  }
+}
+
+[data-theme="dark"] .wos-gender-filter-count {
+  color: var(--wos-heading);
+}
+
 .wos-gender-picker.wos-gender-picker-filter {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }

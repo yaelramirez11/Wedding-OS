@@ -255,7 +255,7 @@ function GuestsPage() {
           <p className="wos-text-muted mt-2 max-w-2xl">{t("guests.subtitle")}</p>
         </div>
 
-        <div className="wos-stat-grid">
+        <div className="wos-guest-stat-grid overflow-hidden">
           {[
             {
               label: t("guests.totalGuests"),
@@ -294,20 +294,10 @@ function GuestsPage() {
           ].map((card) => (
             <div
               key={card.label}
-              className="wos-card p-6 flex items-center gap-5 min-h-[140px] min-w-0"
+              className="wos-card wos-guest-stat-card p-4 sm:p-6 flex items-center gap-3 sm:gap-5 min-w-0 overflow-hidden"
             >
               <div
-                className={`
-        h-16
-        w-16
-        rounded-full
-        flex
-        items-center
-        justify-center
-        text-2xl
-        font-bold
-        ${card.color}
-      `}
+                className={`wos-guest-stat-icon shrink-0 rounded-full flex items-center justify-center font-bold ${card.color}`}
               >
                 {card.icon}
               </div>
@@ -356,6 +346,7 @@ function GuestsPage() {
             setSideFilter={setSideFilter}
             genderFilter={genderFilter}
             setGenderFilter={setGenderFilter}
+            filteredCount={filteredGuests.length}
             sortBy={sortBy}
             setSortBy={setSortBy}
           />

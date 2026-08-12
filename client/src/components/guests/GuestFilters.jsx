@@ -12,6 +12,7 @@ function GuestFilters({
   setSideFilter,
   genderFilter,
   setGenderFilter,
+  filteredCount,
   sortBy,
   setSortBy,
 }) {
@@ -63,7 +64,17 @@ function GuestFilters({
           />
 
           {genderFilter !== "all" && (
-            <p className="wos-guest-filter-hint">{t("guests.genderFilterHint")}</p>
+            <div className="wos-gender-filter-summary">
+              <p className="wos-gender-filter-count">
+                {filteredCount === 1
+                  ? t("guests.filteredGuestCountOne")
+                  : t("guests.filteredGuestCount").replace(
+                      "{{count}}",
+                      String(filteredCount),
+                    )}
+              </p>
+              <p className="wos-guest-filter-hint">{t("guests.genderFilterHint")}</p>
+            </div>
           )}
         </div>
 

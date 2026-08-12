@@ -132,6 +132,8 @@ export const translations = {
       noMatchingGenderHint:
         "No guests match this gender yet. Tap Men or Women on each guest card to assign it.",
       genderUpdateError: "Could not update guest gender.",
+      filteredGuestCount: "{{count}} guests shown",
+      filteredGuestCountOne: "1 guest shown",
       plusOne: "Plus one allowed",
       plusOneHint: "Can this guest bring someone?",
       addGuestBtn: "Add Guest",
@@ -782,6 +784,8 @@ export const translations = {
       noMatchingGenderHint:
         "Ningún invitado coincide con este género. Toca Hombres o Mujeres en cada tarjeta para asignarlo.",
       genderUpdateError: "No se pudo actualizar el género del invitado.",
+      filteredGuestCount: "{{count}} invitados mostrados",
+      filteredGuestCountOne: "1 invitado mostrado",
       plusOne: "Acompañante permitido",
       plusOneHint: "¿Puede traer a alguien?",
       addGuestBtn: "Agregar invitado",

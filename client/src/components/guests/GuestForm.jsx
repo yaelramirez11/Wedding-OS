@@ -29,10 +29,8 @@ function GuestForm({
   return (
     <form
       onSubmit={onSubmit}
-      className="wos-card p-6 wos-sticky-panel overflow-hidden relative"
+      className="wos-card p-6 wos-sticky-panel wos-guest-form overflow-hidden relative"
     >
-      <div className="absolute -bottom-10 -right-10 h-40 w-40 rounded-full bg-[var(--wos-rose-soft)]" />
-
       <div className="relative z-10">
         <div className="mb-6">
           <h2 className="text-2xl font-serif font-semibold wos-text-heading">
