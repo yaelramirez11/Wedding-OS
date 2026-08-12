@@ -10,7 +10,7 @@ const createGuestSchema = z.object({
 
   side: z.enum(["bride", "groom", "both"]).optional(),
 
-  gender: z.enum(["male", "female"]).optional().nullable(),
+  gender: z.enum(["male", "female"]),
 
   plusOneAllowed: z.boolean().optional(),
 

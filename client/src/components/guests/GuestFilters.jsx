@@ -1,12 +1,7 @@
+import GuestGenderPicker from "./GuestGenderPicker.jsx";
 import { useTranslation } from "../../context/PreferencesContext.jsx";
 
 const statusOptions = ["all", "pending", "confirmed", "maybe", "declined"];
-
-const genderFilterOptions = [
-  { value: "all", labelKey: "gender.all" },
-  { value: "male", labelKey: "gender.men" },
-  { value: "female", labelKey: "gender.women" },
-];
 
 function GuestFilters({
   search,
@@ -59,24 +54,17 @@ function GuestFilters({
         <div>
           <p className="wos-guest-filter-label">{t("gender.label")}</p>
 
-          <div
-            className="wos-gender-filter"
-            role="group"
-            aria-label={t("gender.label")}
-          >
-            {genderFilterOptions.map((item) => (
-              <button
-                key={item.value}
-                type="button"
-                onClick={() => setGenderFilter(item.value)}
-                className={`wos-gender-filter-btn ${
-                  genderFilter === item.value ? "is-active" : ""
-                }`}
-              >
-                {t(item.labelKey)}
-              </button>
-            ))}
-          </div>
+          <GuestGenderPicker
+            value={genderFilter === "all" ? null : genderFilter}
+            onChange={(gender) => setGenderFilter(gender || "all")}
+            allowUnset
+            unsetLabelKey="gender.all"
+            className="wos-gender-picker-filter"
+          />
+
+          {genderFilter !== "all" && (
+            <p className="wos-guest-filter-hint">{t("guests.genderFilterHint")}</p>
+          )}
         </div>
 
         <div>

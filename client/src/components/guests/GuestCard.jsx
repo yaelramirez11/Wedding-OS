@@ -1,13 +1,20 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { useTranslation } from "../../context/PreferencesContext.jsx";
-import { getGuestGenderConfig, getGuestSideConfig, getGuestStatusConfig } from "../../i18n/helpers.js";
+import GuestGenderPicker from "./GuestGenderPicker.jsx";
+import {
+  getGuestGenderConfig,
+  getGuestSideConfig,
+  getGuestStatusConfig,
+} from "../../i18n/helpers.js";
 
 function GuestCard({
   guest,
   onChangeStatus,
   onDeleteGuest,
-  onUpdateGuestName,
+  onUpdateGuest,
+  onUpdateGuestGender,
+  savingGenderGuestId,
 }) {
   const { t } = useTranslation();
   const statusConfig = getGuestStatusConfig(t);
@@ -17,7 +24,7 @@ function GuestCard({
   const [isEditing, setIsEditing] = useState(false);
   const [editedName, setEditedName] = useState(guest.name);
   const [editedSide, setEditedSide] = useState(guest.side || "both");
-  const [editedGender, setEditedGender] = useState(guest.gender || "");
+  const [editedGender, setEditedGender] = useState(guest.gender || null);
   const [editedPlusOneAllowed, setEditedPlusOneAllowed] = useState(
     Boolean(guest.plusOneAllowed),
   );
@@ -25,14 +32,23 @@ function GuestCard({
 
   const currentStatus = statusConfig[guest.status] || statusConfig.pending;
   const isValidName = editedName.trim().length >= 3;
+  const isSavingGender = savingGenderGuestId === guest.id;
+
+  useEffect(() => {
+    setEditedName(guest.name);
+    setEditedSide(guest.side || "both");
+    setEditedGender(guest.gender || null);
+    setEditedPlusOneAllowed(Boolean(guest.plusOneAllowed));
+    setEditedNotes(guest.notes || "");
+  }, [guest]);
 
   const handleSave = async () => {
-    if (!isValidName) return;
+    if (!isValidName || !editedGender) return;
 
-    await onUpdateGuestName(guest, {
+    await onUpdateGuest(guest, {
       name: editedName.trim(),
       side: editedSide,
-      gender: editedGender || null,
+      gender: editedGender,
       plusOneAllowed: editedPlusOneAllowed,
       notes: editedNotes.trim() || null,
     });
@@ -43,7 +59,7 @@ function GuestCard({
   const handleCancel = () => {
     setEditedName(guest.name);
     setEditedSide(guest.side || "both");
-    setEditedGender(guest.gender || "");
+    setEditedGender(guest.gender || null);
     setEditedPlusOneAllowed(Boolean(guest.plusOneAllowed));
     setEditedNotes(guest.notes || "");
     setIsEditing(false);
@@ -82,15 +98,15 @@ function GuestCard({
                   <option value="groom">{sideConfig.groom.label}</option>
                 </select>
 
-                <select
-                  value={editedGender}
-                  onChange={(e) => setEditedGender(e.target.value)}
-                  className="wos-input text-sm"
-                >
-                  <option value="">{t("gender.unset")}</option>
-                  <option value="female">{genderConfig.female.label}</option>
-                  <option value="male">{genderConfig.male.label}</option>
-                </select>
+                <div>
+                  <p className="text-xs font-semibold wos-text-muted mb-2">
+                    {t("guests.guestGender")}
+                  </p>
+                  <GuestGenderPicker
+                    value={editedGender}
+                    onChange={setEditedGender}
+                  />
+                </div>
 
                 <label className="flex items-center justify-between gap-4 rounded-2xl border border-[#eadde2] px-4 py-3 cursor-pointer hover:bg-[#fff8fa] transition">
                   <span className="text-sm font-medium wos-text-heading">
@@ -123,6 +139,18 @@ function GuestCard({
                 <p className="text-sm wos-text-muted mt-1">
                   {currentStatus.message}
                 </p>
+
+                <div className="mt-3">
+                  <p className="text-xs font-semibold wos-text-muted mb-2">
+                    {t("guests.guestGender")}
+                  </p>
+                  <GuestGenderPicker
+                    value={guest.gender}
+                    onChange={(gender) => onUpdateGuestGender(guest, gender)}
+                    disabled={isSavingGender}
+                    className="wos-gender-picker-card"
+                  />
+                </div>
 
                 <div className="flex flex-wrap gap-2 mt-3">
                   <span
@@ -184,7 +212,7 @@ function GuestCard({
               <button
                 type="button"
                 onClick={handleSave}
-                disabled={!isValidName}
+                disabled={!isValidName || !editedGender}
                 className="text-sm font-medium text-white bg-[#660033] px-4 py-2 rounded-2xl hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed active:scale-95 transition"
               >
                 {t("common.save")}

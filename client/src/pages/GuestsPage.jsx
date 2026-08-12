@@ -22,7 +22,8 @@ function GuestsPage() {
   const [guests, setGuests] = useState([]);
   const [name, setName] = useState("");
   const [side, setSide] = useState("both");
-  const [gender, setGender] = useState("");
+  const [gender, setGender] = useState(null);
+  const [savingGenderGuestId, setSavingGenderGuestId] = useState(null);
   const [plusOneAllowed, setPlusOneAllowed] = useState(false);
   const [notes, setNotes] = useState("");
   const [loading, setLoading] = useState(false);
@@ -97,7 +98,7 @@ function GuestsPage() {
         name,
         status: "pending",
         side,
-        gender: gender || null,
+        gender,
         plusOneAllowed,
         notes: notes.trim() || null,
       });
@@ -105,7 +106,7 @@ function GuestsPage() {
       setGuests((prev) => [newGuest, ...prev]);
       setName("");
       setSide("both");
-      setGender("");
+      setGender(null);
       setPlusOneAllowed(false);
       setNotes("");
       showSuccess(t("guests.addSuccess"));
@@ -181,7 +182,7 @@ function GuestsPage() {
       return new Date(b.createdAt) - new Date(a.createdAt);
     });
 
-  const handleUpdateGuestName = async (guest, updates) => {
+  const handleUpdateGuest = async (guest, updates) => {
     try {
       const updatedGuest = await updateGuest(guest.id, updates);
 
@@ -193,6 +194,37 @@ function GuestsPage() {
     } catch (error) {
       console.error(error);
       showError(t("guests.updateError"));
+    }
+  };
+
+  const handleUpdateGuestGender = async (guest, gender) => {
+    if (!gender || guest.gender === gender) {
+      return;
+    }
+
+    const previousGender = guest.gender;
+
+    setSavingGenderGuestId(guest.id);
+    setGuests((prev) =>
+      prev.map((item) => (item.id === guest.id ? { ...item, gender } : item)),
+    );
+
+    try {
+      const updatedGuest = await updateGuest(guest.id, { gender });
+
+      setGuests((prev) =>
+        prev.map((item) => (item.id === updatedGuest.id ? updatedGuest : item)),
+      );
+    } catch (error) {
+      console.error(error);
+      setGuests((prev) =>
+        prev.map((item) =>
+          item.id === guest.id ? { ...item, gender: previousGender } : item,
+        ),
+      );
+      showError(error.message || t("guests.genderUpdateError"));
+    } finally {
+      setSavingGenderGuestId(null);
     }
   };
 
@@ -333,8 +365,11 @@ function GuestsPage() {
             isLoading={isFetching}
             onChangeStatus={handleChangeStatus}
             onDeleteGuest={handleDeleteGuest}
+            onUpdateGuest={handleUpdateGuest}
+            onUpdateGuestGender={handleUpdateGuestGender}
+            savingGenderGuestId={savingGenderGuestId}
             hasGuests={guests.length > 0}
-            onUpdateGuestName={handleUpdateGuestName}
+            genderFilter={genderFilter}
           />
 
           <DeleteConfirmationModal

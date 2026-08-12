@@ -127,6 +127,11 @@ export const translations = {
       nameMinError: "The name must have at least 3 characters, darling",
       weddingSide: "Wedding side",
       guestGender: "Gender",
+      genderRequiredHint: "Choose Men or Women so the filter can work.",
+      genderFilterHint: "Only guests with Men or Women selected on their card will appear here.",
+      noMatchingGenderHint:
+        "No guests match this gender yet. Tap Men or Women on each guest card to assign it.",
+      genderUpdateError: "Could not update guest gender.",
       plusOne: "Plus one allowed",
       plusOneHint: "Can this guest bring someone?",
       addGuestBtn: "Add Guest",
@@ -771,6 +776,12 @@ export const translations = {
       nameMinError: "El nombre debe tener al menos 3 caracteres, cariño",
       weddingSide: "Lado de la boda",
       guestGender: "Género",
+      genderRequiredHint: "Elige Hombres o Mujeres para que el filtro funcione.",
+      genderFilterHint:
+        "Solo aparecerán invitados con Hombres o Mujeres seleccionado en su tarjeta.",
+      noMatchingGenderHint:
+        "Ningún invitado coincide con este género. Toca Hombres o Mujeres en cada tarjeta para asignarlo.",
+      genderUpdateError: "No se pudo actualizar el género del invitado.",
       plusOne: "Acompañante permitido",
       plusOneHint: "¿Puede traer a alguien?",
       addGuestBtn: "Agregar invitado",

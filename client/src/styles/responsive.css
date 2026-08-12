@@ -1018,8 +1018,24 @@ body,
   box-shadow: 0 8px 20px rgba(102, 0, 51, 0.16);
 }
 
-.wos-gender-filter-btn:active {
-  transform: scale(0.98);
+.wos-guest-filter-hint {
+  margin: 0.45rem 0 0;
+  font-size: 0.68rem;
+  line-height: 1.35;
+  color: #8d7380;
+}
+
+.wos-gender-picker.wos-gender-picker-filter {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.wos-gender-picker-card {
+  max-width: 18rem;
+}
+
+.wos-gender-filter-btn:disabled {
+  opacity: 0.65;
+  cursor: wait;
 }
 
 @media (min-width: 640px) {

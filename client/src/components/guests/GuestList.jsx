@@ -6,8 +6,11 @@ function GuestList({
   isLoading,
   onChangeStatus,
   onDeleteGuest,
-  onUpdateGuestName,
+  onUpdateGuest,
+  onUpdateGuestGender,
+  savingGenderGuestId,
   hasGuests,
+  genderFilter = "all",
 }) {
   const { t } = useTranslation();
 
@@ -29,7 +32,11 @@ function GuestList({
         </h2>
 
         <p className="wos-text-muted mt-2">
-          {hasGuests ? t("guests.noMatchingHint") : t("guests.noGuestsHint")}
+          {hasGuests
+            ? genderFilter !== "all"
+              ? t("guests.noMatchingGenderHint")
+              : t("guests.noMatchingHint")
+            : t("guests.noGuestsHint")}
         </p>
       </div>
     );
@@ -43,7 +50,9 @@ function GuestList({
           guest={guest}
           onChangeStatus={onChangeStatus}
           onDeleteGuest={onDeleteGuest}
-          onUpdateGuestName={onUpdateGuestName}
+          onUpdateGuest={onUpdateGuest}
+          onUpdateGuestGender={onUpdateGuestGender}
+          savingGenderGuestId={savingGenderGuestId}
         />
       ))}
     </div>

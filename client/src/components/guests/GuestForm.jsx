@@ -1,3 +1,4 @@
+import GuestGenderPicker from "./GuestGenderPicker.jsx";
 import { useTranslation } from "../../context/PreferencesContext.jsx";
 
 function GuestForm({
@@ -16,18 +17,13 @@ function GuestForm({
 }) {
   const { t } = useTranslation();
   const trimmedName = name.trim();
-  const isValid = trimmedName.length >= 3;
+  const isValid = trimmedName.length >= 3 && Boolean(gender);
   const showError = trimmedName.length > 0 && trimmedName.length < 3;
 
   const sideOptions = [
     { value: "bride", labelKey: "side.bride", className: "bg-rose-100 text-black-700" },
     { value: "groom", labelKey: "side.groom", className: "bg-blue-50 text-black-700" },
     { value: "both", labelKey: "side.both", className: "bg-amber-50 text-black-700" },
-  ];
-
-  const genderOptions = [
-    { value: "female", labelKey: "gender.woman", className: "bg-pink-50 text-pink-800" },
-    { value: "male", labelKey: "gender.man", className: "bg-sky-50 text-sky-800" },
   ];
 
   return (
@@ -65,6 +61,24 @@ function GuestForm({
 
           <div>
             <p className="text-xs font-semibold wos-text-muted mb-2">
+              {t("guests.guestGender")}
+            </p>
+
+            <GuestGenderPicker
+              value={gender}
+              onChange={setGender}
+              className="wos-gender-filter-form"
+            />
+
+            {!gender && (
+              <p className="text-xs wos-text-muted mt-2">
+                {t("guests.genderRequiredHint")}
+              </p>
+            )}
+          </div>
+
+          <div>
+            <p className="text-xs font-semibold wos-text-muted mb-2">
               {t("guests.weddingSide")}
             </p>
 
@@ -78,37 +92,6 @@ function GuestForm({
                     side === item.value
                       ? "bg-[#660033] text-white"
                       : item.className
-                  }`}
-                >
-                  {t(item.labelKey)}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <p className="text-xs font-semibold wos-text-muted mb-2">
-              {t("guests.guestGender")}
-            </p>
-
-            <div className="wos-gender-filter wos-gender-filter-form">
-              <button
-                type="button"
-                onClick={() => setGender("")}
-                className={`wos-gender-filter-btn ${
-                  gender === "" ? "is-active" : ""
-                }`}
-              >
-                {t("gender.unset")}
-              </button>
-
-              {genderOptions.map((item) => (
-                <button
-                  key={item.value}
-                  type="button"
-                  onClick={() => setGender(item.value)}
-                  className={`wos-gender-filter-btn ${
-                    gender === item.value ? "is-active" : ""
                   }`}
                 >
                   {t(item.labelKey)}
