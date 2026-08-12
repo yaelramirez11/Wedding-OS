@@ -943,6 +943,11 @@ body,
   gap: 1.5rem;
   align-items: start;
   min-width: 0;
+  overflow: hidden;
+}
+
+.wos-side-form {
+  isolation: isolate;
 }
 
 @media (min-width: 1280px) {

@@ -413,10 +413,8 @@ function HoneymoonPage() {
       <section className="wos-split-layout">
         <form
           onSubmit={handleSubmit}
-          className="wos-card p-6 wos-sticky-panel overflow-hidden relative"
+          className="wos-card p-6 wos-sticky-panel wos-side-form overflow-hidden relative"
         >
-          <div className="absolute -bottom-12 -right-12 h-44 w-44 rounded-full bg-[#fff0f3]" />
-
           <div className="relative z-10 space-y-4">
             <div>
               <h2 className="text-2xl font-serif font-semibold wos-text-heading">
