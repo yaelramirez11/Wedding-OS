@@ -20,7 +20,14 @@ const createGuest = async (userId, guestData) => {
 };
 
 const updateGuest = async (userId, id, guestData) => {
-  return updateOwned(prisma.guest, userId, id, guestData);
+  const data = { ...guestData };
+
+  if (data.status === "declined") {
+    data.tableId = null;
+    data.seatIndex = null;
+  }
+
+  return updateOwned(prisma.guest, userId, id, data);
 };
 
 const deleteGuest = async (userId, id) => {

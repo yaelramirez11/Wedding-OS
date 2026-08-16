@@ -21,6 +21,10 @@ export function buildSeatSlots(guests, capacity) {
   const unassigned = [];
 
   for (const guest of guests) {
+    if (guest.status === "declined") {
+      continue;
+    }
+
     if (
       guest.seatIndex != null &&
       guest.seatIndex >= 0 &&

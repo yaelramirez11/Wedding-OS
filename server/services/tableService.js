@@ -5,6 +5,11 @@ const { updateOwned } = require("../lib/ownership");
 const TABLE_CAPACITY = 10;
 const SWEETHEART_TABLE_CAPACITY = 2;
 const SWEETHEART_TABLE_NAME = "Sweetheart Table";
+
+const seatedGuestWhere = (userId) => ({
+  userId,
+  status: { not: "declined" },
+});
 const DEFAULT_MERGED_TABLE_NAMES = new Set([
   "Merged table",
   "Mesa unida",
@@ -138,7 +143,7 @@ const getTables = async (userId) => {
     where: { userId },
     include: {
       guests: {
-        where: { userId },
+        where: seatedGuestWhere(userId),
         orderBy: [{ seatIndex: "asc" }, { createdAt: "asc" }],
       },
     },
@@ -173,7 +178,7 @@ const updateTable = async (userId, id, data) => {
     },
     include: {
       guests: {
-        where: { userId },
+        where: seatedGuestWhere(userId),
       },
     },
   });
@@ -254,7 +259,7 @@ const mergeTables = async (
       where: { id: primaryTableId, userId },
       include: {
         guests: {
-          where: { userId },
+          where: seatedGuestWhere(userId),
           orderBy: [{ seatIndex: "asc" }, { createdAt: "asc" }],
         },
       },
@@ -263,7 +268,7 @@ const mergeTables = async (
       where: { id: secondaryTableId, userId },
       include: {
         guests: {
-          where: { userId },
+          where: seatedGuestWhere(userId),
           orderBy: [{ seatIndex: "asc" }, { createdAt: "asc" }],
         },
       },
@@ -352,7 +357,7 @@ const unmergeTable = async (userId, tableId) => {
     },
     include: {
       guests: {
-        where: { userId },
+        where: seatedGuestWhere(userId),
         orderBy: [{ seatIndex: "asc" }, { createdAt: "asc" }],
       },
     },
@@ -517,6 +522,10 @@ const assignGuestToTable = async (userId, { guestId, tableId, seatIndex }) => {
     });
   }
 
+  if (guest.status === "declined") {
+    throw createError("Declined guests cannot be seated.", 400);
+  }
+
   const table = await prisma.weddingTable.findFirst({
     where: {
       id: tableId,
@@ -532,7 +541,7 @@ const assignGuestToTable = async (userId, { guestId, tableId, seatIndex }) => {
   const tableGuests = await prisma.guest.findMany({
     where: {
       tableId,
-      userId,
+      ...seatedGuestWhere(userId),
     },
     select: {
       id: true,
